@@ -379,7 +379,7 @@ main() {
 	download_avatars
 
 	# Download libraries
-	local libraries="bash-utils clone-all dotfiles git-utils kegger osx-theme osx-utils"
+	local libraries="bash-utils clone-all git-utils kegger osx-theme osx-utils dotfiles"
 	local library
 	for library in $libraries
 	do
