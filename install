@@ -4,6 +4,16 @@ REPO="eighth-inning"
 DIR="/usr/local/opt/${REPO}"
 GITHUB_USER="chrisopedia"
 
+# Check for Homebrew; install brew
+if ! type -P 'brew' &> /dev/null; then
+	ruby -e "$(curl -#fkL raw.github.com/Homebrew/homebrew/go/install)"
+
+	_process "Running brew doctor"
+	brew doctor
+
+	[[ $? ]] && _success "Homebrew installed"
+fi
+
 # If missing, download and extract the repository
 if [[ ! -d "${DIR}" ]]; then
 
