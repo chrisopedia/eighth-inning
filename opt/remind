@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# Author:
+#   Newton (@chrisopedia)
+#   Mathias Bynens (@mathiasbynens)
+#   [Source](https://github.co/mathiasbynens/dotfiles/blob/master/.functions)
+
+# Description:
+#   Add reminder to Reminder.app (OS X 10.8)
+#
+# Dependencies:
+#   None
+#
+# Configuration:
+#   @param    text    required
+#
+# Usage:
+#   `remind 'text' <list>` or `echo 'text' | remind`
+
+$reminder_text
+$reminder_list
+
+if [ -t 0 ]; then
+    reminder_text="$1"
+else
+    reminder_text=$(cat)
+fi
+
+if [ "$2" ]; then
+    reminder_list="$2"
+else
+    reminder_list="the default list"
+fi
+
+osascript >/dev/null <<EOF
+tell application "Reminders"
+    tell "$reminder_list"
+        make new reminder with properties {name:"$reminder_text"}
+    end tell
+end tell
+EOF

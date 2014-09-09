@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Author:
+#   Newton (@chrisopedia)
+#   Mathias Bynens (@mathiasbynens)
+#   [Source](https://github.co/mathiasbynens/dotfiles/blob/master/.functions)
+#
+# Description:
+#   Add note to Notes.app (OS X 10.8)
+#
+# Dependencies:
+#   `../lib/utils`, only for the messaging, confirmation method
+#
+# Configuration:
+#   @param    title   optional
+#   @param    body    required
+#
+# Usage:
+#   `note 'title' 'body'` or `echo 'body' | note`
+
+$note_title
+$note_body
+
+if [ -t 0 ]; then
+    note_title="$1"
+    note_body="$2"
+else
+    note_title=$(cat)
+fi
+
+osascript >/dev/null <<EOF
+tell application "Notes"
+    tell account "iCloud"
+        tell folder "Notes"
+            make new note with properties {name:"$note_title", body:"$note_title" & "<br><br>" & "$note_body"}
+        end tell
+    end tell
+end tell
+EOF

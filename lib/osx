@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+setup_computer() {
+	# Set the computer name
+	printf "%s==> What would you like to name your computer?%s " "$(tput setaf 3)" "$(tput sgr0)"
+	read COMPUTER_NAME
+
+	if [[ ! -z "${COMPUTER_NAME}" ]]; then
+		sudo systemsetup -setcomputername "${COMPUTER_NAME}" &> /dev/null
+		sudo systemsetup -setlocalsubnetname "${COMPUTER_NAME}" &> /dev/null
+	fi
+}
+
+setup_defaults() {
+	# Save screenshots to the Pictures folder
+	defaults write com.apple.screencapture location -string "${HOME}/Pictures/Screenshots"
+	#defaults write com.developer.app NSUserKeyEquivalents -dict-add "Menu Item" -string "@$~^k"
+
+	# Add Login Window Text
+	sudo defaults write /Library/Preferences/com.apple.loginwindow LoginwindowText "Get your hands off my 'puter yo! Unless it's missing and you can call me at +1 424.265.9725"
+	# Change picture for main login screen to Ralph and I cartoon
+	sudo defaults write /Library/Preferences/com.apple.loginwindow DesktopPicture "${HOME}/Pictures/ralph-and-i.png"
+
+	# Set Minimal Clock as default screensaver
+	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = Spectrum; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; }';
+
+	# TextEdit: change default fixed width font to 16px Inconsolata
+	# @TODO: need to install Inconsolata
+	defaults write com.apple.TextEdit 'NSFixedPitchFont' -string 'Inconsolata'
+}
+
+setup_alfred() {
+	# @TODO: need to install/setup Alfred
+	defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
+	# Base 16 Eighties Light
+	# alfred.theme.custom.48B3B070-0936-4850-BE43-BD693C917078
+	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string "$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred"
+	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = Space; }';
+}
+
+setup_chrome() {
+	# Allow installing user scripts via GitHub or Userscripts.org
+	defaults write com.google.Chrome ExtensionInstallSources -array "https://*.github.com/*" "http://userscripts.org/*"
+	defaults write com.google.Chrome.canary ExtensionInstallSources -array "https://*.github.com/*" "http://userscripts.org/*"
+}
+
+setup_iterm() {
+	# iTerm2: don’t display the annoying prompt when quitting
+	# defaults write com.googlecode.iterm2 PromptOnQuit -bool false
+	defaults write com.googlecode.iterm2 QuitWhenAllWindowsClosed -bool true
+}
+
+setup_openemu() {
+	# Enable 'Secrets' preferences tab (debug menu)
+	defaults write org.openemu.OpenEmu debug -bool true
+	# @TODO: figure out how to point to the $HOME/Code/private/games directory
+}
+
+setup_marked() {
+	local files="marked/*"
+	local file
+	for file in $files
+	do
+		mv "$file" "$HOME/Library/Services"
+	done
+}
+
+killall_apps() {
+	local app
+	for app in "Alfred" "Chrome" "iTerm" "Open Emu" "SystemUIServer"
+	do
+		killall "${app}" > /dev/null 2>&1
+	done
+}
+
+main() {
+	setup_computer
+	setup_defaults
+	setup_alfred
+	setup_chrome
+	setup_iterm
+	setup_marked
+	setup_openemu
+	killall_apps
+}
+
+main

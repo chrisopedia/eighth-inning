@@ -1,0 +1,436 @@
+#!/usr/bin/env bash
+
+# constants
+readonly PROGNAME="$(basename "$0")"
+readonly PROGDIR="/usr/local/opt/eighth-inning"
+readonly VERSION=$(cat "$PROGDIR/VERSION.md")
+readonly TODAY=$(date +"%m-%d-%y")
+readonly LOG="${HOME}/Library/Logs/${PROGNAME}.log"
+readonly ARGS="$@"
+
+# utility functions
+_is_empty() {
+	local var=$1
+	[[ -z $var ]]
+}
+_is_not_empty() {
+	local var=$1
+	[[ -n $var ]]
+}
+_exists() {
+	local var=$1
+	[[ -e $var ]]
+}
+is_file() {
+	local file=$1
+	[[ -f $file ]]
+}
+_is_dir() {
+	local dir=$1
+	[[ -d $dir ]]
+}
+_is_not_valid_option() {
+	local option=$1
+	printf "bash: %s: %s: invalid option\n" "$PROGNAME" "$option"
+}
+_notify_me() {
+	local command=$1
+	local status=$2
+	local date="$(date)"
+	# https://instapush.im/dashboard/info/53c74193a4c48a4f48fb0818
+	curl -X POST \
+		-H "x-instapush-appid: 53c74193a4c48a4f48fb0818" \
+		-H "x-instapush-appsecret: $APPSECRET" \
+		-H "Content-Type: application/json" \
+		-d "{ \"event\" : \"command_status\", \"trackers\" : { \"command\" : ${command}, \"status\" : ${status}, \"timestamp\" : ${date} } }" \
+		https://api.instapush.im/v1/post
+	terminal-notifier -title "$PROGNAME" -message "$command was $status at $timestamp" -activate "com.apple.Terminal"
+}
+_print_error() {
+	local message=$1
+	local timestamp="$(date)"
+	echo "$timestamp" "ERROR: " "$message" >> "$LOG"
+	printf "%s⊘ Error:%s %s. Aborting!\n\n" "$(tput setaf 1)" "$(tput sgr0)" "$message"
+}
+_print_progress() {
+	local message=$1
+	local timestamp="$(date)"
+	echo "$timestamp" "PROCESSING: " "$message" >> "$LOG"
+	printf "%s┃%s...\n" "$(tput setaf 6)" "$(tput sgr0) $message"
+}
+_print_success() {
+	local message=$1
+	local timestamp="$(date)"
+	echo "$timestamp" "SUCCESS: " "$message" >> "$LOG"
+	printf "%s✓ Success:%s\n" "$(tput setaf 2)" "$(tput sgr0) $message"
+}
+_seek_confirmation() {
+	local message=$1
+	printf "\n%s⚠ Warning:%s!\n" "$(tput setaf 3)" "$(tput sgr0) $message"
+	read -p "Continue? (y/n) " -n 1
+	printf "\n"
+}
+_is_confirmed() {
+	if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+		return 0
+	fi
+	return 1
+}
+_require_prog() {
+	local prog=$1
+	local msg=$2
+	local url=$3
+	type -P "$prog" >/dev/null || {
+		print_error "$msg"
+		echo "Download it at $url"
+		exit 2
+	}
+}
+_change_text() {
+	local old=$1
+	local new=$2
+	local file=$3
+	local regex="s/$old/$new/g"
+	perl -pi -e "$regex" "$file"
+}
+_usage() {
+	printf "%s: usage: %s [-h|--help] [--prefix] [-v|--version]"  "$PROGNAME"
+"$PROGNAME"
+}
+_print_help() {
+	cat <<- EOF
+
+	usage: $PROGNAME [options]
+
+	Update dotfiles with any new dependencies
+
+	OPTIONS:
+    -h --help              Show this help
+    -t --test              Run unit test to check the program
+    -v --version           Display dotfiles version
+    --prefix               Display dotfiles install path. Default: $PROGDIR
+
+	Examples:
+	Run all tests:
+    $PROGNAME --test
+
+	Print current version:
+    $PROGNAME --version
+
+	Run:
+    $PROGNAME
+
+	EOF
+}
+_print_directory() {
+	echo "$PROGDIR"
+}
+_edit() {
+	cd "$PROGDIR" \
+	&& vim
+}
+_run_tests() {
+	_require_prog roundup "Roundup is required to run tests" https://github.com/bmizerany/roundup \
+		&& roundup ./tests/*.sh
+}
+_version() {
+	printf 'Version %s\n' "$VERSION"
+}
+_cat_vhost() {
+	local host=$1
+	/usr/bin/sudo cat <<- EOM > $file
+<VirtualHost *:80>
+    ServerName ${host}.com
+    ServerAlias dev.${host}.com:4000
+    DocumentRoot "/Users/${USER}/Code/clients/${host}/_site"
+    Options Indexes MultiViews Includes
+</VirtualHost>
+	EOM
+}
+
+# options
+cmdline() {
+	# got this idea from here:
+	# http://kirk.webfinish.com/2009/10/bash-shell-script-to-use-getopts-with-gnu-style-long-positional-parameters/
+	local arg=
+	for arg
+	do
+		local delim=""
+		case "$arg" in
+			#translate --gnu-long-options to -g (short options)
+			--edit)         args="${args}-e ";;
+			--help)         args="${args}-h ";;
+			--prefix)       args="${args}-p ";;
+			--test)         args="${args}-t ";;
+			--version)      args="${args}-v ";;
+			#pass through anything else
+			*) [[ "${arg:0:1}" == "-" ]] || delim="\""
+				args="${args}${delim}${arg}${delim} ";;
+		esac
+	done
+
+	#Reset the positional parameters to the short options
+	eval set -- "$args"
+
+	while getopts ":ehptv" OPTION
+	do
+		case $OPTION in
+			e)
+				_edit
+				exit 0
+				;;
+			h)
+				_print_help
+				exit 0
+				;;
+			p)
+				_print_directory
+				exit 0
+				;;
+			t)
+				_run_tests
+				exit 0
+				;;
+			v)
+				_version
+				exit 0
+				;;
+			\?)
+				_is_not_valid_option "-$OPTARG"
+				usage
+				exit 1
+				;;
+		esac
+	done
+
+	return 0
+}
+get_app_secret() {
+	_notify_me "InstaPush" "requesting input"
+	printf "\n%sPlease provide your InstaPush App Secret.\n You can sign up for one at https://instapush.im/auth/register." "$(tput setaf 3)" "$(tput sgr0)"
+	read APP_SECRET
+	printf "\n"
+
+	if [[ ! -z $APP_SECRET ]]; then
+		readonly "$APP_SECRET"
+	fi
+}
+download_library() {
+	local package=$1
+	curl -#fL "raw.github.com/chrisopedia/$package/go/install"
+	_notify_me "$package" "downloaded"
+}
+# Recursive call to install kegs
+ask_to_install_more_kegs() {
+	_notify_me "Kegger" "requesting input"
+	_seek_confirmation "Would you like to install anymore kegs"
+
+	if _is_confirmed; then
+		echo "Server ID: 57bba889c6017e6f99d7"
+		echo "Optional ID: c7f7b4ba2a692e2eb60d"
+		printf "\n%s⚠ Warning: Input another Github Gist ID!\n" "$(tput setaf 3)" "$(tput sgr0) $message"
+		read USER_GIST_ID
+		printf "\n"
+
+		if [[ ! -z $USER_GIST_ID ]]; then
+			bash kegger "$USER_GIST_ID"
+		fi
+		install_kegs
+	fi
+}
+setup_directory_structure() {
+	local dirs="client gists lagr oss private project"
+	local dir
+
+	for dir in $dirs
+	do
+		mkdir -p "$HOME/Code/${dir}"
+		_notify_me "$HOME/Code/${dir}" "created"
+	done
+	# Remove the About Downloads pdf
+	rm -rf "${HOME}/Downloads/About Downloads.lpdf"
+}
+setup_screenshots() {
+	mkdir -p "$HOME/Pictures/Screenshots"
+	# open keyboard preferences to setup shortcuts for screen shots
+	open "/System/Library/PreferencePanes/Keyboard.prefPane"
+	_notify_me "Screenshots directory" "created"
+}
+download_avatars() {
+	# Download avatar for immediate use
+	curl -#flo "${HOME}/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png"
+	curl -#flo "${HOME}/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png"
+	_notify_me "Avatar" "downloaded"
+}
+install_kegs() {
+	local kegs="0b61a78ed66fd94d8277 5ec0bc278d368187cdff 437cc62c5c39bdd2cc67 825c86d6cf41a488d992 63e5cc70f0ad92615242"
+	local keg
+
+	for keg in $kegs
+	do
+		kegger "${keg}"
+		_notify_me "$keg" "downloaded"
+	done
+}
+clone_bitbucket_repos() {
+	local repos="app-licenses.git games.git fonts.git httpd.git"
+	local url="https://chrisopedia@bitbucket.org/chrisopedia"
+	local repo
+
+	for repo in $repos
+	do
+		git clone "$url/$repo" "$HOME/Code/private/$repo"
+		_notify_me "$repo" "cloned"
+	done
+}
+setup_games() {
+	local games="$HOME/Code/private/games/mac-apps/*"
+	local game
+
+	for game in $games
+	do
+		ln -fs "$game" "$HOME/Applications/$game"
+		_notify_me "$game" "symlinked"
+	done
+}
+setup_fonts() {
+	local fonts="$HOME/Code/private/fonts/defaults/*"
+	local font
+	local dir="$HOME/Library/Fonts"
+
+	mkdir -p "$dir"
+
+	for font in $fonts
+	do
+		mv "$font" "$dir/$font"
+		_notify_me "$font" "installed"
+	done
+}
+tap_libraries() {
+	local libraries=$1
+	local library
+	local tap_dir="$(brew --prefix)/Library/Taps/homebrew/homebrew"
+
+	for library in $libraries
+	do
+		is_dir "$tap_dir-$location" && brew tap "homebrew/$library"
+		_notify_me "$library" "tapped"
+	done
+}
+setup_httpd() {
+	local file="/private/etc/apache2/httpd.conf"
+	sudo change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" $file
+	sudo change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" $file
+	sudo change_text "/Library/WebServer/Documents" "${HOME}/Code" $file
+	_notify_me "$file" "configured"
+}
+setup_vhosts() {
+	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
+	local hosts="eanewton rinsecup styleguide"
+	for host in $hosts
+	do
+		_cat_vhost "$host"
+		_notify_me "$host" "setup as a vhost"
+	done
+}
+setup_user_conf() {
+	local file="/private/etc/apache2/users/${USER}.conf"
+	/usr/bin/sudo rm /private/etc/apache2/users/*
+	/usr/bin/sudo cat <<- EOM > $file
+	<Directory "/Users/$USER/Code/">
+		Options Indexes MultiViews
+		AllowOverride None
+		Order allow,deny
+		Allow from all
+	</Directory>
+	EOM
+	# http://httpd.apache.org/docs/trunk/howto/public_html.html
+	/usr/bin/sudo_change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf"
+	_notify_me "$file" "configured"
+}
+symlink_functions() {
+	local dir="$PROGDIR/opt"
+	local functions="$(find "$dir" -type f -execdir echo {} +)"
+	local file
+	for file in $functions
+	do
+		ln -fs "${dir}/${file}" "/usr/local/bin/${file}"
+		_notify_me "$file" "symlinked"
+	done
+}
+setup_ssh_config() {
+	# @TODO: set up ssh keys for github/bitbucket
+	local file="$HOME/Code/private/httpd/ssh.conf"
+	cat "$file" >> "$HOME/.ssh/config"
+	_notify_me "$file" "configured"
+}
+
+main() {
+	cmdline "$ARGS"
+
+	# prep the notification libraries
+	get_app_secret
+	brew install terminal-notifier \
+		&& brew linkapps --local
+
+	# setup computer directories
+	setup_directory_structure
+	setup_screenshots
+	download_avatars
+
+	# Download libraries
+	local libraries="bash-utils clone-all dotfiles git-utils kegger osx-theme osx-utils"
+	local library
+	for library in $libraries
+	do
+		download_library "${library}"
+	done
+
+	# clone bitbucket libraries
+	clone_bitbucket_repos
+
+	# tap homebrew libraries
+	tap_libraries "binary games"
+
+	# setup fonts and games
+	setup_fonts
+	setup_games
+
+	# Clone all repos & gists
+	require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
+		&& clone-all --feed 'repos' chrisopedia "${HOME}/Downloads/repos" \
+		&& _notify_me "clone-all" "run to clone all repos" \
+		&& clone-all --feed 'gists' chrisopedia "${HOME}/Code/gists" \
+		&& _notify_me "clone-all" "run to clone all gists"
+
+	# Install personal & developer kegs
+	require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
+		&& install_kegs \
+		&& ask_to_install_more_kegs
+
+	# setup up Apache httpd configuration
+	setup_user_conf
+	setup_httpd
+	setup_vhosts
+	setup_ssh_config
+
+	# symlink functions
+	symlink_functions
+
+	# move bash_profile
+	mv "$PROGDIR/conf/bash_profile.local" "${HOME}/.bash_profile.local"
+	_notify_me "bash_profile.local" "moved"
+
+	# setup the osx theme
+	osx-theme "eighties" "dark"
+	_notify_me "osx theme" "set to eighties, dark style"
+
+	# run the osx setup
+	bash "$PROGDIR/lib/osx"
+	_notify_me "osx" "run to configure app-specific settings"
+	# OSX preferences goes last because it will restart the machine
+	download_library "osx"
+	_notify_me "osx" "run to configure global OS X settings"
+}
+
+main
