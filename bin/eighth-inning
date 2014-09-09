@@ -33,18 +33,30 @@ _is_not_valid_option() {
 	local option=$1
 	printf "bash: %s: %s: invalid option\n" "$PROGNAME" "$option"
 }
+get_app_secret() {
+	printf "\n%sPlease provide your InstaPush App Secret.%s\nYou can sign up for one at https://instapush.im/auth/register." "$(tput setaf 3)" "$(tput sgr0)"
+	read APPSECRET
+	printf "\n"
+
+	if [[ ! -z $APPSECRET ]]; then
+		readonly "$APPSECRET"
+	fi
+}
 _notify_me() {
 	local command=$1
-	local status=$2
-	local date="$(date)"
+	local verb=$2
+	local status=$3
+	local timestamp="$(date)"
+
 	# https://instapush.im/dashboard/info/53c74193a4c48a4f48fb0818
-	curl -X POST \
+	_is_not_empty "$APPSECRET" \
+	&& curl -X POST \
 		-H "x-instapush-appid: 53c74193a4c48a4f48fb0818" \
 		-H "x-instapush-appsecret: $APPSECRET" \
 		-H "Content-Type: application/json" \
-		-d "{ \"event\" : \"command_status\", \"trackers\" : { \"command\" : ${command}, \"status\" : ${status}, \"timestamp\" : ${date} } }" \
+		-d "{ \"event\" : \"command_status\", \"trackers\" : { \"command\" : \"${command}\", \"verb\" : \"${verb}\", \"status\" : \"${status}\", \"timestamp\" : \"${timestampnotif}\" } }" \
 		https://api.instapush.im/v1/post
-	terminal-notifier -title "$PROGNAME" -message "$command was $status at $timestamp" -activate "com.apple.Terminal"
+	terminal-notifier -title "$PROGNAME" -message "$command $verb $status at $timestamp" -activate "com.apple.Terminal"
 }
 _print_error() {
 	local message=$1
@@ -205,24 +217,14 @@ cmdline() {
 
 	return 0
 }
-get_app_secret() {
-	_notify_me "InstaPush" "requesting input"
-	printf "\n%sPlease provide your InstaPush App Secret.\n You can sign up for one at https://instapush.im/auth/register." "$(tput setaf 3)" "$(tput sgr0)"
-	read APP_SECRET
-	printf "\n"
-
-	if [[ ! -z $APP_SECRET ]]; then
-		readonly "$APP_SECRET"
-	fi
-}
 download_library() {
 	local package=$1
 	curl -#fL "raw.github.com/chrisopedia/$package/go/install"
-	_notify_me "$package" "downloaded"
+	_notify_me "$package" "was" "downloaded"
 }
 # Recursive call to install kegs
 ask_to_install_more_kegs() {
-	_notify_me "Kegger" "requesting input"
+	_notify_me "Kegger" "is" "requesting input"
 	_seek_confirmation "Would you like to install anymore kegs"
 
 	if _is_confirmed; then
@@ -245,7 +247,7 @@ setup_directory_structure() {
 	for dir in $dirs
 	do
 		mkdir -p "$HOME/Code/${dir}"
-		_notify_me "$HOME/Code/${dir}" "created"
+		_notify_me "$HOME/Code/${dir}" "was" "created"
 	done
 	# Remove the About Downloads pdf
 	rm -rf "${HOME}/Downloads/About Downloads.lpdf"
@@ -254,13 +256,13 @@ setup_screenshots() {
 	mkdir -p "$HOME/Pictures/Screenshots"
 	# open keyboard preferences to setup shortcuts for screen shots
 	open "/System/Library/PreferencePanes/Keyboard.prefPane"
-	_notify_me "Screenshots directory" "created"
+	_notify_me "Screenshots directory" "was" "created"
 }
 download_avatars() {
 	# Download avatar for immediate use
 	curl -#flo "${HOME}/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png"
 	curl -#flo "${HOME}/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png"
-	_notify_me "Avatar" "downloaded"
+	_notify_me "Avatars" "were" "downloaded"
 }
 install_kegs() {
 	local kegs="0b61a78ed66fd94d8277 5ec0bc278d368187cdff 437cc62c5c39bdd2cc67 825c86d6cf41a488d992 63e5cc70f0ad92615242"
@@ -269,7 +271,7 @@ install_kegs() {
 	for keg in $kegs
 	do
 		kegger "${keg}"
-		_notify_me "$keg" "downloaded"
+		_notify_me "$keg keg" "was" "downloaded"
 	done
 }
 clone_bitbucket_repos() {
@@ -280,7 +282,7 @@ clone_bitbucket_repos() {
 	for repo in $repos
 	do
 		git clone "$url/$repo" "$HOME/Code/private/$repo"
-		_notify_me "$repo" "cloned"
+		_notify_me "$repo repo" "was" "cloned"
 	done
 }
 setup_games() {
@@ -290,7 +292,7 @@ setup_games() {
 	for game in $games
 	do
 		ln -fs "$game" "$HOME/Applications/$game"
-		_notify_me "$game" "symlinked"
+		_notify_me "$game" "was" "symlinked"
 	done
 }
 setup_fonts() {
@@ -303,7 +305,7 @@ setup_fonts() {
 	for font in $fonts
 	do
 		mv "$font" "$dir/$font"
-		_notify_me "$font" "installed"
+		_notify_me "$font" "was" "installed"
 	done
 }
 tap_libraries() {
@@ -314,7 +316,7 @@ tap_libraries() {
 	for library in $libraries
 	do
 		is_dir "$tap_dir-$location" && brew tap "homebrew/$library"
-		_notify_me "$library" "tapped"
+		_notify_me "$library" "was" "tapped"
 	done
 }
 setup_httpd() {
@@ -322,7 +324,7 @@ setup_httpd() {
 	sudo change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" $file
 	sudo change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" $file
 	sudo change_text "/Library/WebServer/Documents" "${HOME}/Code" $file
-	_notify_me "$file" "configured"
+	_notify_me "$file" "was" "configured"
 }
 setup_vhosts() {
 	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
@@ -330,7 +332,7 @@ setup_vhosts() {
 	for host in $hosts
 	do
 		_cat_vhost "$host"
-		_notify_me "$host" "setup as a vhost"
+		_notify_me "$host" "was" "setup as a vhost"
 	done
 }
 setup_user_conf() {
@@ -346,7 +348,7 @@ setup_user_conf() {
 	EOM
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
 	/usr/bin/sudo_change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf"
-	_notify_me "$file" "configured"
+	_notify_me "$file" "was" "configured"
 }
 symlink_functions() {
 	local dir="$PROGDIR/opt"
@@ -355,23 +357,26 @@ symlink_functions() {
 	for file in $functions
 	do
 		ln -fs "${dir}/${file}" "/usr/local/bin/${file}"
-		_notify_me "$file" "symlinked"
+		_notify_me "$file" "was" "symlinked"
 	done
 }
 setup_ssh_config() {
 	# @TODO: set up ssh keys for github/bitbucket
 	local file="$HOME/Code/private/httpd/ssh.conf"
 	cat "$file" >> "$HOME/.ssh/config"
-	_notify_me "$file" "configured"
+	_notify_me "$file" "was" "configured"
 }
 
 main() {
 	cmdline "$ARGS"
 
+	# download the dotfiles first
+	download_library "dotfiles"
+	
 	# prep the notification libraries
 	get_app_secret
-	brew install terminal-notifier \
-		&& brew linkapps --local
+	brew install terminal-notifier
+	brew linkapps --local
 
 	# setup computer directories
 	setup_directory_structure
@@ -379,7 +384,7 @@ main() {
 	download_avatars
 
 	# Download libraries
-	local libraries="bash-utils clone-all git-utils kegger osx-theme osx-utils dotfiles"
+	local libraries="bash-utils clone-all git-utils kegger osx-theme osx-utils"
 	local library
 	for library in $libraries
 	do
@@ -399,9 +404,9 @@ main() {
 	# Clone all repos & gists
 	require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
 		&& clone-all --feed 'repos' chrisopedia "${HOME}/Downloads/repos" \
-		&& _notify_me "clone-all" "run to clone all repos" \
+		&& _notify_me "clone-all" "cloned" "all repos" \
 		&& clone-all --feed 'gists' chrisopedia "${HOME}/Code/gists" \
-		&& _notify_me "clone-all" "run to clone all gists"
+		&& _notify_me "clone-all" "cloned" "all gists"
 
 	# Install personal & developer kegs
 	require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
@@ -419,18 +424,18 @@ main() {
 
 	# move bash_profile
 	mv "$PROGDIR/conf/bash_profile.local" "${HOME}/.bash_profile.local"
-	_notify_me "bash_profile.local" "moved"
+	_notify_me "bash_profile.local" "was" "moved"
 
 	# setup the osx theme
 	osx-theme "eighties" "dark"
-	_notify_me "osx theme" "set to eighties, dark style"
+	_notify_me "osx theme" "was" "set to eighties, dark style"
 
 	# run the osx setup
 	bash "$PROGDIR/lib/osx"
-	_notify_me "osx" "run to configure app-specific settings"
+	_notify_me "osx" "configured" "app-specific settings"
 	# OSX preferences goes last because it will restart the machine
 	download_library "osx"
-	_notify_me "osx" "run to configure global OS X settings"
+	_notify_me "osx" "configure" "global OS X settings"
 }
 
 main
