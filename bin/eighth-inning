@@ -218,7 +218,7 @@ cmdline() {
 }
 download_library() {
 	local package=$1
-	curl -#fL "raw.github.com/chrisopedia/$package/go/install"
+	bash -c "$(curl -#fL "raw.github.com/chrisopedia/$package/go/install)"
 	_notify_me "$package" "was" "downloaded"
 }
 # Recursive call to install kegs
