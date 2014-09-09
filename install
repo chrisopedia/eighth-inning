@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 REPO="eighth-inning"
-DIR="$HOME/Downloads/${REPO}"
+DIR="/usr/local/opt/${REPO}"
 GITHUB_USER="chrisopedia"
 
 # Check for Homebrew; install brew
@@ -39,7 +39,8 @@ if [[ ! -d "${DIR}" ]]; then
 	printf "%s✓ Success:%s %s created, repository downloaded and extracted.\n" "$(tput setaf 2)" "$(tput sgr0)" "${DIR}"
 fi
 
-# Change to the ${REPO} directory
-cd "${DIR}"
+# Symlink library files
+_process "Symlinking dotfiles command & man page"
+ln -fs "${DIR}/bin/${REPO}" "/usr/local/bin/${REPO}"
 
 [[ $? ]] && printf "%s✓ Success:%s %s has been installed.%s\n" "$(tput setaf 2)" "$(tput sgr0 ; tput setaf 7)" "${DIR}" "$(tput sgr0)"
