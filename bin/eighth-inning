@@ -106,8 +106,7 @@ _change_text() {
 	perl -pi -e "$regex" "$file"
 }
 _usage() {
-	printf "%s: usage: %s [-h|--help] [--prefix] [-v|--version]"  "$PROGNAME"
-"$PROGNAME"
+	printf "%s: usage: %s [-h|--help] [--prefix] [-v|--version]"  "$PROGNAME" "$PROGNAME"
 }
 _print_help() {
 	cat <<- EOF
