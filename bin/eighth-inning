@@ -2,7 +2,7 @@
 
 # constants
 readonly PROGNAME="$(basename "$0")"
-readonly PROGDIR="$HOME/Downloads/eighth-inning"
+readonly PROGDIR="/usr/local/opt/eighth-inning"
 readonly VERSION=$(cat "$PROGDIR/VERSION.md")
 readonly TODAY=$(date +"%m-%d-%y")
 readonly LOG="${HOME}/Library/Logs/${PROGNAME}.log"
