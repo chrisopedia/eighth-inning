@@ -241,7 +241,7 @@ ask_to_install_more_kegs() {
 	fi
 }
 setup_directory_structure() {
-	local dirs="client lagr oss private project"
+	local dirs="client gist lagr oss private project"
 	local dir
 
 	for dir in $dirs
@@ -386,7 +386,7 @@ main() {
 	download_avatars
 
 	# Download libraries
-	local libraries="bash-utils clone-all git-utils kegger osx-theme osx-utils"
+	local libraries="bash-utils clone-all git-utils kegger osx osx-theme osx-utils"
 	local library
 	for library in $libraries
 	do
@@ -407,7 +407,7 @@ main() {
 	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
 		&& clone-all --feed 'repos' chrisopedia "${HOME}/Downloads/repos" \
 		&& _notify_me "clone-all" "cloned" "all repos" \
-		&& clone-all --feed 'gists' chrisopedia "${HOME}/Code" \
+		&& clone-all --feed 'gists' chrisopedia "${HOME}/Code/gists" \
 		&& _notify_me "clone-all" "cloned" "all gists"
 
 	# Install personal & developer kegs
@@ -436,7 +436,7 @@ main() {
 	bash "$PROGDIR/lib/osx"
 	_notify_me "osx" "configured" "app-specific settings"
 	# OSX preferences goes last because it will restart the machine
-	download_library "osx"
+	osx
 	_notify_me "osx" "configure" "global OS X settings"
 }
 
