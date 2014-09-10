@@ -19,10 +19,10 @@ setup_defaults() {
 	# Add Login Window Text
 	sudo defaults write /Library/Preferences/com.apple.loginwindow LoginwindowText "Get your hands off my 'puter yo! Unless it's missing and you can call me at +1 424.265.9725"
 	# Change picture for main login screen to Ralph and I cartoon
-	sudo defaults write /Library/Preferences/com.apple.loginwindow DesktopPicture "${HOME}/Pictures/ralph-and-i.png"
+	sudo defaults write /Library/Preferences/com.apple.loginwindow DesktopPicture "$HOME/Pictures/ralph-and-i.png"
 
 	# Set Minimal Clock as default screensaver
-	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = Spectrum; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; }';
+	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = Spectrum; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; } }'
 
 	# TextEdit: change default fixed width font to 16px Inconsolata
 	defaults write com.apple.TextEdit 'NSFixedPitchFont' -string 'Inconsolata'
