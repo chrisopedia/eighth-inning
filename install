@@ -6,13 +6,11 @@ GITHUB_USER="chrisopedia"
 
 # Success logging
 _success() {
-	echo "$(date) SUCCESS:  $@" >> $LOG
 	printf "$(tput setaf 2)✓ Success:$(tput sgr0) %s\n" "$@"
 }
 
 # Command/Processing logging
 _process() {
-	echo "$(date) PROCESSING:  $@" >> $LOG
 	printf "$(tput setaf 6)┃$(tput sgr0)$(tput setaf 7) %s...$(tput sgr0)\n" "$@"
 }
 
