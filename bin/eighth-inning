@@ -287,23 +287,27 @@ clone_bitbucket_repos() {
 setup_games() {
 	local games="$HOME/Code/private/games/mac-apps/*"
 	local game
+	local dir="$(dirname "$games")"
 
 	for game in $games
 	do
-		ln -fs "$game" "$HOME/Applications/$game"
+		game="$(basename "$game")"
+		ln -fs "$dir/$game" "$HOME/Applications/$game"
 		_notify_me "$game" "was" "symlinked"
 	done
 }
 setup_fonts() {
 	local fonts="$HOME/Code/private/fonts/defaults/*"
 	local font
+	local base="$(dirname "$fonts")"
 	local dir="$HOME/Library/Fonts"
 
 	mkdir -p "$dir"
 
 	for font in $fonts
 	do
-		mv "$font" "$dir/$font"
+		font="$(basename "$font")"
+		mv "$base/$font" "$dir/$font"
 		_notify_me "$font" "was" "installed"
 	done
 }
@@ -314,7 +318,7 @@ tap_libraries() {
 
 	for library in $libraries
 	do
-		is_dir "$tap_dir-$location" && brew tap "homebrew/$library"
+		_is_dir "$tap_dir-$location" && brew tap "homebrew/$library"
 		_notify_me "$library" "was" "tapped"
 	done
 }
