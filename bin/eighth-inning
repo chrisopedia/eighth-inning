@@ -373,7 +373,7 @@ setup_user_conf() {
 	</Directory>
 	EOM \
 		&& _print_progress "Creating $USER.conf" \
-		&& && _notify_me "$file" "was" "created"
+		&& _notify_me "$file" "was" "created"
 
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
 	sudo _change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
