@@ -59,9 +59,15 @@ setup_openemu() {
 setup_marked() {
 	local files="marked/*"
 	local file
+	local dir="$HOME/Library/Services"
+	
+	if [[ ! -d "$dir" ]]; then
+		mkdir -p "$dir"
+	fi
 	for file in $files
 	do
-		mv "$file" "$HOME/Library/Services"
+		file="$(basename "$file")"
+		mv "$file" "$dir/$file"
 	done
 }
 
