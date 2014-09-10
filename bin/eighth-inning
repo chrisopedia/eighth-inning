@@ -274,13 +274,13 @@ install_kegs() {
 	done
 }
 clone_bitbucket_repos() {
-	local repos="app-licenses.git games.git fonts.git httpd.git"
+	local repos="app-licenses games fonts httpd"
 	local url="https://chrisopedia@bitbucket.org/chrisopedia"
 	local repo
 
 	for repo in $repos
 	do
-		git clone "$url/$repo" "$HOME/Code/private/$repo"
+		git clone "$url/${repo}.git" "$HOME/Code/private/$repo"
 		_notify_me "$repo repo" "was" "cloned"
 	done
 }
