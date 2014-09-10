@@ -374,8 +374,6 @@ main() {
 	
 	# prep the notification libraries
 	get_app_secret
-	brew install terminal-notifier
-	brew linkapps --local
 
 	# setup computer directories
 	setup_directory_structure
