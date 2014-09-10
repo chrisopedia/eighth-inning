@@ -155,7 +155,7 @@ _cat_vhost() {
 <VirtualHost *:80>
     ServerName ${host}.com
     ServerAlias dev.${host}.com:4000
-    DocumentRoot "/Users/${USER}/Code/clients/${host}/_site"
+    DocumentRoot "/Users/$USER/Code/clients/$host/_site"
     Options Indexes MultiViews Includes
 </VirtualHost>
 	EOM
@@ -371,8 +371,8 @@ setup_user_conf() {
 		Order allow,deny
 		Allow from all
 	</Directory>
-	EOM \
-		&& _print_progress "Creating $USER.conf" \
+	EOM
+	_print_progress "Creating $USER.conf" \
 		&& _notify_me "$file" "was" "created"
 
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
@@ -387,7 +387,7 @@ symlink_functions() {
 
 	for file in $functions
 	do
-		ln -fs "${dir}/${file}" "/usr/local/bin/${file}" \
+		ln -fs "$dir/$file" "/usr/local/bin/$file" \
 			&& _print_progress "Symlinking $dir/$file to /usr/local/bin/$file" \
 			&& _notify_me "$file" "was" "symlinked"
 	done
@@ -417,7 +417,7 @@ main() {
 	local library
 	for library in $libraries
 	do
-		download_library "${library}"
+		download_library "$library"
 	done
 
 	# clone bitbucket libraries
