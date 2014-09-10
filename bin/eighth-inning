@@ -5,7 +5,7 @@ readonly PROGNAME="$(basename "$0")"
 readonly PROGDIR="/usr/local/opt/eighth-inning"
 readonly VERSION=$(cat "$PROGDIR/VERSION.md")
 readonly TODAY=$(date +"%m-%d-%y")
-readonly LOG="${HOME}/Library/Logs/${PROGNAME}.log"
+readonly LOG="$HOME/Library/Logs/${PROGNAME}.log"
 readonly ARGS="$@"
 
 # utility functions
@@ -34,7 +34,7 @@ _is_not_valid_option() {
 	printf "bash: %s: %s: invalid option\n" "$PROGNAME" "$option"
 }
 get_app_secret() {
-	printf "\n%sPlease provide your InstaPush App Secret.%s\nYou can sign up for one at https://instapush.im/auth/register." "$(tput setaf 3)" "$(tput sgr0)"
+	printf "\n%sPlease provide your InstaPush App Secret => %s" "$(tput setaf 3)" "$(tput sgr0)"
 	read APPSECRET
 	printf "\n"
 
@@ -93,7 +93,7 @@ _require_prog() {
 	local msg=$2
 	local url=$3
 	type -P "$prog" >/dev/null || {
-		print_error "$msg"
+		_print_error "$msg"
 		echo "Download it at $url"
 		exit 2
 	}
@@ -113,13 +113,13 @@ _print_help() {
 
 	usage: $PROGNAME [options]
 
-	Update dotfiles with any new dependencies
+	Setup a brand new Mac
 
 	OPTIONS:
     -h --help              Show this help
     -t --test              Run unit test to check the program
-    -v --version           Display dotfiles version
-    --prefix               Display dotfiles install path. Default: $PROGDIR
+    -v --version           Display $PROGNAME version
+    --prefix               Display $PROGNAME install path. Default: $PROGDIR
 
 	Examples:
 	Run all tests:
@@ -219,8 +219,9 @@ cmdline() {
 }
 download_library() {
 	local package=$1
-	bash -c "$(curl -#fL raw.github.com/chrisopedia/$package/go/install)"
-	_notify_me "$package" "was" "downloaded"
+	bash -c "$(curl -#fL raw.github.com/chrisopedia/$package/go/install)" \
+		&& _print_progress "Downloading & installing $package" \
+		&& _notify_me "$package" "was" "downloaded"
 }
 # Recursive call to install kegs
 ask_to_install_more_kegs() {
@@ -246,22 +247,28 @@ setup_directory_structure() {
 
 	for dir in $dirs
 	do
-		mkdir -p "$HOME/Code/${dir}"
-		_notify_me "$HOME/Code/${dir}" "was" "created"
+		mkdir -p "$HOME/Code/$dir" \
+			&& _print_progress "Creating $HOME/Code/$dir" \
+			&& _notify_me "$HOME/Code/$dir" "was" "created"
 	done
 	# Remove the About Downloads pdf
-	rm -rf "${HOME}/Downloads/About Downloads.lpdf"
+	rm -rf "$HOME/Downloads/About Downloads.lpdf" \
+		&& _print_progress "Removing $HOME/Downloads/About Downloads.lpdf"
 }
 setup_screenshots() {
-	mkdir -p "$HOME/Pictures/Screenshots"
+	mkdir -p "$HOME/Pictures/Screenshots" \
+		&& _print_progress "Creating $HOME/Pictures/Screenshots" \
+		&& _notify_me "Screenshots directory" "was" "created"
+
 	# open keyboard preferences to setup shortcuts for screen shots
 	open "/System/Library/PreferencePanes/Keyboard.prefPane"
-	_notify_me "Screenshots directory" "was" "created"
 }
 download_avatars() {
 	# Download avatar for immediate use
-	curl -#flo "${HOME}/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png"
-	curl -#flo "${HOME}/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png"
+	curl -#flo "$HOME/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png" \
+		&& _print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/800x800.png"
+	curl -#flo "$HOME/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png" \
+		&& _print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/full.png"
 	_notify_me "Avatars" "were" "downloaded"
 }
 install_kegs() {
@@ -270,8 +277,9 @@ install_kegs() {
 
 	for keg in $kegs
 	do
-		kegger "${keg}"
-		_notify_me "$keg keg" "was" "downloaded"
+		kegger "$keg" \
+			&& _print_progress "kegger is installing $keg" \
+			&& _notify_me "$keg keg" "was" "downloaded"
 	done
 }
 clone_bitbucket_repos() {
@@ -281,8 +289,9 @@ clone_bitbucket_repos() {
 
 	for repo in $repos
 	do
-		git clone "$url/${repo}.git" "$HOME/Code/private/$repo"
-		_notify_me "$repo repo" "was" "cloned"
+		git clone "$url/${repo}.git" "$HOME/Code/private/$repo" \
+			&& _print_progress "Cloning $url/$repo to $HOME/Code/private/$repo" \
+			&& _notify_me "$repo repo" "was" "cloned"
 	done
 }
 setup_games() {
@@ -293,8 +302,9 @@ setup_games() {
 	for game in $games
 	do
 		game="$(basename "$game")"
-		ln -fs "$dir/$game" "$HOME/Applications/$game"
-		_notify_me "$game" "was" "symlinked"
+		ln -fs "$dir/$game" "$HOME/Applications/$game" \
+			&& _print_progress "Symlinking $dir/$game to $HOME/Applications/$game" \
+			&& _notify_me "$game" "was" "symlinked"
 	done
 }
 setup_fonts() {
@@ -303,13 +313,15 @@ setup_fonts() {
 	local base="$(dirname "$fonts")"
 	local dir="$HOME/Library/Fonts"
 
+	_print_progress "Creating $dir"
 	mkdir -p "$dir"
 
 	for font in $fonts
 	do
 		font="$(basename "$font")"
-		mv "$base/$font" "$dir/$font"
-		_notify_me "$font" "was" "installed"
+		mv "$base/$font" "$dir/$font" \
+			&& _print_progress "Moving $base/$font to $dir/$font" \
+			&& _notify_me "$font" "was" "installed"
 	done
 }
 tap_libraries() {
@@ -319,29 +331,40 @@ tap_libraries() {
 
 	for library in $libraries
 	do
-		_is_dir "$tap_dir-$location" && brew tap "homebrew/$library"
-		_notify_me "$library" "was" "tapped"
+		
+		brew tap "homebrew/$library" \
+			&& _print_progress "Tapping homebrew/$library" \
+			&& _notify_me "$library" "was" "tapped"
 	done
 }
 setup_httpd() {
 	local file="/private/etc/apache2/httpd.conf"
-	sudo _change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" $file
-	sudo _change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" $file
-	sudo _change_text "/Library/WebServer/Documents" "${HOME}/Code" $file
+	
+	sudo _change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" "$file" \
+		&& _print_progress "Uncommenting php5 module"
+	sudo _change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" "$file" \
+		&& _print_progress "Uncomment httpd-vhosts module"
+	sudo _change_text "/Library/WebServer/Documents" "$HOME/Code" "$file" \
+		&& _print_progress "Changing web server root to $HOME/Code"
 	_notify_me "$file" "was" "configured"
 }
 setup_vhosts() {
 	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
 	local hosts="eanewton rinsecup styleguide"
+
 	for host in $hosts
 	do
-		_cat_vhost "$host" "$file"
-		_notify_me "$host" "was" "setup as a vhost"
+		
+		_cat_vhost "$host" "$file" \
+			&& _print_progress "Setting up $host as a vhost" \
+			&& _notify_me "$host" "was" "setup as a vhost"
 	done
 }
 setup_user_conf() {
 	local file="/private/etc/apache2/users/${USER}.conf"
-	sudo rm /private/etc/apache2/users/*
+	
+	sudo rm /private/etc/apache2/users/* \
+		&& _print_progress "Removing default apache user configuration files"
 	sudo cat <<- EOM > $file
 	<Directory "/Users/$USER/Code/">
 		Options Indexes MultiViews
@@ -349,34 +372,38 @@ setup_user_conf() {
 		Order allow,deny
 		Allow from all
 	</Directory>
-	EOM
+	EOM \
+		&& _print_progress "Creating $USER.conf"
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
-	sudo _change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf"
+	
+	sudo _change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
+		&& _print_progress "Changing text
 	_notify_me "$file" "was" "configured"
 }
 symlink_functions() {
 	local dir="$PROGDIR/opt"
 	local functions="$(find "$dir" -type f -execdir echo {} +)"
 	local file
+
 	for file in $functions
 	do
-		ln -fs "${dir}/${file}" "/usr/local/bin/${file}"
-		_notify_me "$file" "was" "symlinked"
+		ln -fs "${dir}/${file}" "/usr/local/bin/${file}" \
+			&& _print_progress "Symlinking $dir/$file to /usr/local/bin/$file" \
+			&& _notify_me "$file" "was" "symlinked"
 	done
 }
 setup_ssh_config() {
 	# @TODO: set up ssh keys for github/bitbucket
 	local file="$HOME/Code/private/httpd/ssh.conf"
-	cat "$file" >> "$HOME/.ssh/config"
-	_notify_me "$file" "was" "configured"
+
+	cat "$file" >> "$HOME/.ssh/config" \
+		&& _print_progress "Setup ssh configuration" \
+		&& _notify_me "$file" "was" "configured"
 }
 
 main() {
 	cmdline "$ARGS"
 
-	# download the dotfiles first
-	download_library "dotfiles"
-	
 	# prep the notification libraries
 	get_app_secret
 
@@ -386,7 +413,7 @@ main() {
 	download_avatars
 
 	# Download libraries
-	local libraries="bash-utils clone-all git-utils kegger osx osx-theme osx-utils"
+	local libraries="bash-utils clone-all dotfiles git-utils kegger osx osx-theme osx-utils"
 	local library
 	for library in $libraries
 	do
@@ -405,9 +432,9 @@ main() {
 
 	# Clone all repos & gists
 	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
-		&& clone-all --feed 'repos' chrisopedia "${HOME}/Downloads/repos" \
+		&& clone-all --feed 'repos' chrisopedia "$HOME/Downloads/repos" \
 		&& _notify_me "clone-all" "cloned" "all repos" \
-		&& clone-all --feed 'gists' chrisopedia "${HOME}/Code/gists" \
+		&& clone-all --feed 'gists' chrisopedia "$HOME/Code/gists" \
 		&& _notify_me "clone-all" "cloned" "all gists"
 
 	# Install personal & developer kegs
@@ -425,7 +452,7 @@ main() {
 	symlink_functions
 
 	# move bash_profile
-	mv "$PROGDIR/conf/bash_profile.local" "${HOME}/.bash_profile.local"
+	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local"
 	_notify_me "bash_profile.local" "was" "moved"
 
 	# setup the osx theme
