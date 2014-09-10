@@ -450,19 +450,19 @@ main() {
 	symlink_functions
 
 	# move bash_profile
-	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local"
-	_notify_me "bash_profile.local" "was" "moved"
+	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local" \
+		&& _notify_me "bash_profile.local" "was" "moved"
 
 	# setup the osx theme
-	osx-theme "eighties" "dark"
-	_notify_me "osx theme" "was" "set to eighties, dark style"
+	osx-theme "eighties" "dark" \
+		&& _notify_me "osx theme" "was" "set to eighties, dark style"
 
 	# run the osx setup
-	bash "$PROGDIR/lib/osx"
-	_notify_me "osx" "configured" "app-specific settings"
+	bash "$PROGDIR/lib/osx" \
+		&& _notify_me "osx" "configured" "app-specific settings"
 	# OSX preferences goes last because it will restart the machine
-	osx
-	_notify_me "osx" "configure" "global OS X settings"
+	osx \
+		&& _notify_me "osx" "configure" "global OS X settings"
 }
 
 main
