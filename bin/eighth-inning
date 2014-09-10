@@ -372,12 +372,13 @@ setup_user_conf() {
 		Allow from all
 	</Directory>
 	EOM \
-		&& _print_progress "Creating $USER.conf"
+		&& _print_progress "Creating $USER.conf" \
+		&& && _notify_me "$file" "was" "created"
+
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
-	
 	sudo _change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
-		&& _print_progress "Changing text
-	_notify_me "$file" "was" "configured"
+		&& _print_progress "Changing Sites to Code in /private/etc/apache2/extra/httpd-userdir.conf" \
+		&& _notify_me "/private/etc/apache2/extra/httpd-userdir.conf" "was" "configured"
 }
 symlink_functions() {
 	local dir="$PROGDIR/opt"
