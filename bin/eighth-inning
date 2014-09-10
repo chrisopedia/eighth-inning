@@ -55,7 +55,7 @@ _notify_me() {
 		-H "x-instapush-appsecret: $APPSECRET" \
 		-H "Content-Type: application/json" \
 		-d "{ \"event\" : \"command_status\", \"trackers\" : { \"command\" : \"${command}\", \"verb\" : \"${verb}\", \"status\" : \"${status}\", \"timestamp\" : \"${timestamp}\" } }" \
-		https://api.instapush.im/v1/post
+		https://api.instapush.im/v1/post > /dev/null
 	terminal-notifier -title "$PROGNAME" -message "$command $verb $status at $timestamp" -activate "com.apple.Terminal"
 }
 _print_error() {
