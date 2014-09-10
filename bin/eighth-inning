@@ -331,7 +331,6 @@ tap_libraries() {
 
 	for library in $libraries
 	do
-		
 		brew tap "homebrew/$library" \
 			&& _print_progress "Tapping homebrew/$library" \
 			&& _notify_me "$library" "was" "tapped"
@@ -354,7 +353,6 @@ setup_vhosts() {
 
 	for host in $hosts
 	do
-		
 		_cat_vhost "$host" "$file" \
 			&& _print_progress "Setting up $host as a vhost" \
 			&& _notify_me "$host" "was" "setup as a vhost"
