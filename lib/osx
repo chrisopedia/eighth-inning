@@ -25,17 +25,18 @@ setup_defaults() {
 	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = Spectrum; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; }';
 
 	# TextEdit: change default fixed width font to 16px Inconsolata
-	# @TODO: need to install Inconsolata
 	defaults write com.apple.TextEdit 'NSFixedPitchFont' -string 'Inconsolata'
 }
 
 setup_alfred() {
 	# @TODO: need to install/setup Alfred
-	defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
+	open -a "Alfred 2"
+	cat "$HOME/Code/private/app-licenses/alfred2.license" | pbcopy
+	# defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
 	# Base 16 Eighties Light
 	# alfred.theme.custom.48B3B070-0936-4850-BE43-BD693C917078
 	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string "$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred"
-	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = Space; }';
+	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = "Space"; }';
 }
 
 setup_chrome() {
