@@ -508,7 +508,7 @@ main() {
 		&& _notify_me "bash_profile.local" "was" "moved"
 
 	# setup the osx theme
-	osx-theme "eighties" "dark" \
+	#osx-theme "eighties" "dark" \
 		&& _print_progress "OS X theme was set to eighties, dark style" \
 		&& _notify_me "osx theme" "was" "set to eighties, dark style"
 
