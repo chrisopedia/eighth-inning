@@ -308,6 +308,26 @@ setup_games() {
 			&& _notify_me "$game" "was" "symlinked"
 	done
 }
+setup_emus() {
+	local systems=$1
+	local system
+	local dest="$HOME/Library/Application Support/OpenEmu/Game Library"
+	
+	for system in $systems
+	do
+		local games="$HOME/Code/private/games/$system/*"
+		local game
+		local dir="$(dirname "$games")"
+		
+		for game in $games
+		do
+			game="$(basename "$game")"
+			ln -fs "$dir/$game" "$dest/$game" \
+				&& _print_progress "Symlinking $dir/$game to $dir/$game" \
+				&& _notify_me "$game" "was" "symlinked"
+		done
+	done
+}
 setup_fonts() {
 	local fonts="$HOME/Code/private/fonts/default/*"
 	local font
@@ -432,6 +452,7 @@ main() {
 	# setup fonts and games
 	setup_fonts
 	setup_games
+	setup_emus "nintendo sega-genesis super-nintendo"
 
 	# Clone all repos & gists
 	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
