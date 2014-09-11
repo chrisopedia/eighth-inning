@@ -34,7 +34,7 @@ _is_not_valid_option() {
 	printf "bash: %s: %s: invalid option\n" "$PROGNAME" "$option"
 }
 get_app_secret() {
-	printf "\n%sPlease provide your InstaPush App Secret => %s" "$(tput setaf 3)" "$(tput sgr0)"
+	printf "\n%s==> What's your InstaPush App Secret?%s " "$(tput setaf 3)" "$(tput sgr0)"
 	read APPSECRET
 	printf "\n"
 
@@ -309,7 +309,7 @@ setup_games() {
 	done
 }
 setup_fonts() {
-	local fonts="$HOME/Code/private/fonts/defaults/*"
+	local fonts="$HOME/Code/private/fonts/default/*"
 	local font
 	local base="$(dirname "$fonts")"
 	local dir="$HOME/Library/Fonts"
@@ -320,7 +320,7 @@ setup_fonts() {
 	for font in $fonts
 	do
 		font="$(basename "$font")"
-		mv "$base/$font" "$dir/$font" \
+		cp "$base/$font" "$dir/$font" \
 			&& _print_progress "Moving $base/$font to $dir/$font" \
 			&& _notify_me "$font" "was" "installed"
 	done
@@ -362,8 +362,11 @@ setup_vhosts() {
 setup_user_conf() {
 	local file="/private/etc/apache2/users/${USER}.conf"
 	
-	sudo rm /private/etc/apache2/users/* \
-		&& _print_progress "Removing default apache user configuration files"
+	if [ ! "$(ls -A /private/etc/apache2/users)" ]; then
+		sudo rm /private/etc/apache2/users/* \
+			&& _print_progress "Removing default apache user configuration files"
+	fi
+	
 	sudo cat <<- EOM > $file
 	<Directory "/Users/$USER/Code/">
 		Options Indexes MultiViews
@@ -434,7 +437,7 @@ main() {
 	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
 		&& clone-all --feed 'repos' chrisopedia "$HOME/Downloads/repos" \
 		&& _notify_me "clone-all" "cloned" "all repos" \
-		&& clone-all --feed 'gists' chrisopedia "$HOME/Code/gists" \
+		&& clone-all --feed 'gists' chrisopedia "$HOME/Code/gist" \
 		&& _notify_me "clone-all" "cloned" "all gists"
 
 	# Install personal & developer kegs
