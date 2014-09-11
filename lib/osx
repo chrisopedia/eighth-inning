@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+setup_permissions() {
+	# Ask for the administrator password upfront
+	sudo -v
+
+	# Keep-alive: update existing `sudo` time stamp until 'osxdefaults' has finished
+	while true
+	do 
+		sudo -n true
+		sleep 60
+		kill -0 "$$" || exit
+	done 2>/dev/null &
+}
+
 setup_computer() {
 	# Set the computer name
 	printf "%s==> What would you like to name your computer?%s " "$(tput setaf 3)" "$(tput sgr0)"
@@ -22,7 +35,7 @@ setup_defaults() {
 	sudo defaults write /Library/Preferences/com.apple.loginwindow DesktopPicture "$HOME/Pictures/ralph-and-i.png"
 
 	# Set Minimal Clock as default screensaver
-	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = Spectrum; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; } }'
+	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = MinimalClock; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; };'
 
 	# TextEdit: change default fixed width font to 16px Inconsolata
 	defaults write com.apple.TextEdit 'NSFixedPitchFont' -string 'Inconsolata'
@@ -35,8 +48,8 @@ setup_alfred() {
 	# defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
 	# Base 16 Eighties Light
 	# alfred.theme.custom.48B3B070-0936-4850-BE43-BD693C917078
-	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string "$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred"
-	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = "Space"; }';
+	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string '$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred'
+	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = "Space"; };'
 }
 
 setup_chrome() {
@@ -54,7 +67,6 @@ setup_iterm() {
 setup_openemu() {
 	# Enable 'Secrets' preferences tab (debug menu)
 	defaults write org.openemu.OpenEmu debug -bool true
-	# @TODO: figure out how to point to the $HOME/Code/private/games directory
 }
 
 setup_marked() {
@@ -82,6 +94,7 @@ killall_apps() {
 
 main() {
 	setup_computer
+	setup_permissions
 	setup_defaults
 	setup_alfred
 	setup_chrome
