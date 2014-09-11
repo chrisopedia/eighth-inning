@@ -35,7 +35,7 @@ setup_defaults() {
 	sudo defaults write /Library/Preferences/com.apple.loginwindow DesktopPicture "$HOME/Pictures/ralph-and-i.png"
 
 	# Set Minimal Clock as default screensaver
-	defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = MinimalClock; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; };'
+	# defaults -currentHost write com.apple.screensaver '{ idleTime = 0; moduleDict = { moduleName = MinimalClock; path = "/Library/Screen Savers/MinimalClock.qtz"; type = 1; }; };'
 
 	# TextEdit: change default fixed width font to 16px Inconsolata
 	defaults write com.apple.TextEdit 'NSFixedPitchFont' -string 'Inconsolata'
@@ -70,7 +70,7 @@ setup_openemu() {
 }
 
 setup_marked() {
-	local files="./marked/*"
+	local files="/usr/local/opt/eighth-inning/lib/marked/*"
 	local file
 	local dir="$HOME/Library/Services"
 	
@@ -80,7 +80,7 @@ setup_marked() {
 	for file in $files
 	do
 		file="$(basename "$file")"
-		mv "$file" "$dir/$file"
+		ln -fs "$file" "$dir/$file"
 	done
 }
 
