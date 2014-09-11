@@ -150,8 +150,11 @@ _version() {
 }
 _cat_vhost() {
 	local host=$1
-	local file=$2
-	sudo cat <<- EOM > $file
+	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
+
+	_setup_permissions
+
+	cat <<- EOM > $file
 <VirtualHost *:80>
     ServerName ${host}.com
     ServerAlias dev.${host}.com:4000
@@ -159,6 +162,18 @@ _cat_vhost() {
     Options Indexes MultiViews Includes
 </VirtualHost>
 	EOM
+}
+_setup_permissions() {
+	# Ask for the administrator password upfront
+	sudo -v
+
+	# Keep-alive: update existing `sudo` time stamp until 'osxdefaults' has finished
+	while true
+	do 
+		sudo -n true
+		sleep 60
+		kill -0 "$$" || exit
+	done 2>/dev/null &
 }
 
 # options
@@ -359,22 +374,22 @@ tap_libraries() {
 }
 setup_httpd() {
 	local file="/private/etc/apache2/httpd.conf"
+	_setup_permissions
 	
-	sudo _change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" "$file" \
+	_change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" "$file" \
 		&& _print_progress "Uncommenting php5 module"
-	sudo _change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" "$file" \
+	_change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" "$file" \
 		&& _print_progress "Uncomment httpd-vhosts module"
-	sudo _change_text "/Library/WebServer/Documents" "$HOME/Code" "$file" \
+	_change_text "/Library/WebServer/Documents" "$HOME/Code" "$file" \
 		&& _print_progress "Changing web server root to $HOME/Code"
 	_notify_me "$file" "was" "configured"
 }
 setup_vhosts() {
-	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
 	local hosts="eanewton rinsecup styleguide"
 
 	for host in $hosts
 	do
-		_cat_vhost "$host" "$file" \
+		_cat_vhost "$host" \
 			&& _print_progress "Setting up $host as a vhost" \
 			&& _notify_me "$host" "was" "setup as a vhost"
 	done
@@ -387,7 +402,9 @@ setup_user_conf() {
 			&& _print_progress "Removing default apache user configuration files"
 	fi
 	
-	sudo cat <<- EOM > $file
+	_setup_permissions
+
+	cat <<- EOM > $file
 	<Directory "/Users/$USER/Code/">
 		Options Indexes MultiViews
 		AllowOverride None
@@ -399,7 +416,7 @@ setup_user_conf() {
 		&& _notify_me "$file" "was" "created"
 
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
-	sudo _change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
+	_change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
 		&& _print_progress "Changing Sites to Code in /private/etc/apache2/extra/httpd-userdir.conf" \
 		&& _notify_me "/private/etc/apache2/extra/httpd-userdir.conf" "was" "configured"
 }
