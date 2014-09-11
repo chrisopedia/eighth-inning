@@ -355,7 +355,7 @@ setup_fonts() {
 	for font in $fonts
 	do
 		font="$(basename "$font")"
-		cp "$base/$font" "$dir/$font" \
+		cp "$base/$font" "$dir/$font"
 	done
 	
 	_print_progress "Copied fonts to $dir/" \
