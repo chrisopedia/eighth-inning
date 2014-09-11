@@ -236,7 +236,7 @@ cmdline() {
 download_library() {
 	local package=$1
 	bash -c "$(curl -#fL raw.github.com/chrisopedia/$package/go/install)" \
-		&& _print_progress "Downloading & installing $package" \
+		&& _print_progress "Downloaded & installed $package" \
 		&& _notify_me "$package" "was" "downloaded"
 }
 # Recursive call to install kegs
@@ -269,7 +269,7 @@ setup_directory_structure() {
 	done
 	# Remove the About Downloads pdf
 	rm -rf "$HOME/Downloads/About Downloads.lpdf" \
-		&& _print_progress "Removing $HOME/Downloads/About Downloads.lpdf"
+		&& _print_progress "Removed $HOME/Downloads/About Downloads.lpdf"
 }
 setup_screenshots() {
 	mkdir -p "$HOME/Pictures/Screenshots" \
@@ -282,9 +282,9 @@ setup_screenshots() {
 download_avatars() {
 	# Download avatar for immediate use
 	curl -#flo "$HOME/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png" \
-		&& _print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/800x800.png"
+		&& _print_progress "Downloaded http://cdn.chrisopedia.me/images/avatar/800x800.png"
 	curl -#flo "$HOME/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png" \
-		&& _print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/full.png"
+		&& _print_progress "Downloaded http://cdn.chrisopedia.me/images/avatar/full.png"
 	_notify_me "Avatars" "were" "downloaded"
 }
 install_kegs() {
@@ -306,7 +306,7 @@ clone_bitbucket_repos() {
 	for repo in $repos
 	do
 		git clone "$url/${repo}.git" "$HOME/Code/private/$repo" \
-			&& _print_progress "Cloning $url/$repo to $HOME/Code/private/$repo" \
+			&& _print_progress "Cloned $url/$repo to $HOME/Code/private/$repo" \
 			&& _notify_me "$repo repo" "was" "cloned"
 	done
 }
@@ -319,7 +319,7 @@ setup_games() {
 	do
 		game="$(basename "$game")"
 		ln -fs "$dir/$game" "$HOME/Applications/$game" \
-			&& _print_progress "Symlinking $dir/$game to $HOME/Applications/$game" \
+			&& _print_progress "Symlinked $dir/$game to $HOME/Applications/$game" \
 			&& _notify_me "$game" "was" "symlinked"
 	done
 }
@@ -338,7 +338,7 @@ setup_emus() {
 		do
 			game="$(basename "$game")"
 			ln -fs "$dir/$game" "$dest/$game" \
-				&& _print_progress "Symlinking $dir/$game to $dir/$game" \
+				&& _print_progress "Symlinked $dir/$game to $dir/$game" \
 				&& _notify_me "$game" "was" "symlinked"
 		done
 	done
@@ -349,16 +349,18 @@ setup_fonts() {
 	local base="$(dirname "$fonts")"
 	local dir="$HOME/Library/Fonts"
 
-	_print_progress "Creating $dir"
-	mkdir -p "$dir"
+	mkdir -p "$dir" \
+		&& _print_progress "$dir was created"
 
 	for font in $fonts
 	do
 		font="$(basename "$font")"
 		cp "$base/$font" "$dir/$font" \
-			&& _print_progress "Moving $base/$font to $dir/$font" \
-			&& _notify_me "$font" "was" "installed"
 	done
+	
+	_print_progress "Copied fonts to $dir/" \
+		&& _notify_me "fonts" "were" "installed"
+
 }
 tap_libraries() {
 	local libraries=$1
@@ -368,7 +370,7 @@ tap_libraries() {
 	for library in $libraries
 	do
 		brew tap "homebrew/$library" \
-			&& _print_progress "Tapping homebrew/$library" \
+			&& _print_progress "Tapped homebrew/$library" \
 			&& _notify_me "$library" "was" "tapped"
 	done
 }
@@ -377,11 +379,11 @@ setup_httpd() {
 	_setup_permissions
 	
 	_change_text "#LoadModule php5_module libexec/apache2/libphp5.so" "LoadModule php5_module libexec/apache2/libphp5.so" "$file" \
-		&& _print_progress "Uncommenting php5 module"
+		&& _print_progress "Uncommented php5 module"
 	_change_text "#Include /private/etc/apache2/extra/httpd-vhosts.conf" "Include /private/etc/apache2/extra/httpd-vhosts.conf" "$file" \
-		&& _print_progress "Uncomment httpd-vhosts module"
+		&& _print_progress "Uncommented httpd-vhosts module"
 	_change_text "/Library/WebServer/Documents" "$HOME/Code" "$file" \
-		&& _print_progress "Changing web server root to $HOME/Code"
+		&& _print_progress "Changed web server root to $HOME/Code"
 	_notify_me "$file" "was" "configured"
 }
 setup_vhosts() {
@@ -390,7 +392,7 @@ setup_vhosts() {
 	for host in $hosts
 	do
 		_cat_vhost "$host" \
-			&& _print_progress "Setting up $host as a vhost" \
+			&& _print_progress "Set up $host as a vhost" \
 			&& _notify_me "$host" "was" "setup as a vhost"
 	done
 }
@@ -399,7 +401,7 @@ setup_user_conf() {
 	
 	if [ ! "$(ls -A /private/etc/apache2/users)" ]; then
 		sudo rm /private/etc/apache2/users/* \
-			&& _print_progress "Removing default apache user configuration files"
+			&& _print_progress "Removed default apache user configuration files"
 	fi
 	
 	_setup_permissions
@@ -412,12 +414,12 @@ setup_user_conf() {
 		Allow from all
 	</Directory>
 	EOM
-	_print_progress "Creating $USER.conf" \
+	_print_progress "Created $USER.conf" \
 		&& _notify_me "$file" "was" "created"
 
 	# http://httpd.apache.org/docs/trunk/howto/public_html.html
 	_change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
-		&& _print_progress "Changing Sites to Code in /private/etc/apache2/extra/httpd-userdir.conf" \
+		&& _print_progress "Changed Sites to Code in /private/etc/apache2/extra/httpd-userdir.conf" \
 		&& _notify_me "/private/etc/apache2/extra/httpd-userdir.conf" "was" "configured"
 }
 symlink_functions() {
@@ -428,7 +430,7 @@ symlink_functions() {
 	for file in $functions
 	do
 		ln -fs "$dir/$file" "/usr/local/bin/$file" \
-			&& _print_progress "Symlinking $dir/$file to /usr/local/bin/$file" \
+			&& _print_progress "Symlinked $dir/$file to /usr/local/bin/$file" \
 			&& _notify_me "$file" "was" "symlinked"
 	done
 }
@@ -471,11 +473,16 @@ main() {
 	setup_games
 	setup_emus "nintendo sega-genesis super-nintendo"
 
-	# Clone all repos & gists
+	# Clone all repos
 	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
 		&& clone-all --feed 'repos' chrisopedia "$HOME/Downloads/repos" \
-		&& _notify_me "clone-all" "cloned" "all repos" \
+		&& _print_progress "Cloned all repos" \
+		&& _notify_me "clone-all" "cloned" "all repos"
+
+	# Clone all gists
+	_require_prog clone-all "clone-all is required to download gists" http://chrisopedia.github.io/clone-all \
 		&& clone-all --feed 'gists' chrisopedia "$HOME/Code/gist" \
+		&& _print_progress "Cloned all repos" \
 		&& _notify_me "clone-all" "cloned" "all gists"
 
 	# Install personal & developer kegs
@@ -494,17 +501,22 @@ main() {
 
 	# move bash_profile
 	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local" \
+		&& _print_progress "Moved bash_profile.local to $HOME/" \
 		&& _notify_me "bash_profile.local" "was" "moved"
 
 	# setup the osx theme
 	osx-theme "eighties" "dark" \
+		&& _print_progress "OS X theme was set to eighties, dark style" \
 		&& _notify_me "osx theme" "was" "set to eighties, dark style"
 
 	# run the osx setup
 	bash "$PROGDIR/lib/osx" \
+		&& _print_progress "Configured app-specific settings" \
 		&& _notify_me "osx" "configured" "app-specific settings"
+
 	# OSX preferences goes last because it will restart the machine
 	osx \
+		&& _print_progress "Configured global OS X settings" \
 		&& _notify_me "osx" "configure" "global OS X settings"
 }
 
