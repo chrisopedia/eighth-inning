@@ -70,7 +70,7 @@ setup_openemu() {
 }
 
 setup_marked() {
-	local files="marked/*"
+	local files="./marked/*"
 	local file
 	local dir="$HOME/Library/Services"
 	
