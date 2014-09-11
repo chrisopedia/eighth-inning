@@ -50,7 +50,7 @@ _notify_me() {
 
 	# https://instapush.im/dashboard/info/53c74193a4c48a4f48fb0818
 	_is_not_empty "$APPSECRET" \
-	&& curl -X POST \
+	&& curl -s -X POST \
 		-H "x-instapush-appid: 53c74193a4c48a4f48fb0818" \
 		-H "x-instapush-appsecret: $APPSECRET" \
 		-H "Content-Type: application/json" \
