@@ -94,7 +94,6 @@ _install_library() {
 
 	_print_progress "Installing $package"
 	bash -c "$(curl -#fL raw.github.com/chrisopedia/"$package"/go/install)" \
-		&& _print_progress "Installed $package" \
 		&& _notify_me "$package" "was" "installed"
 }
 _change_text() {
@@ -329,10 +328,10 @@ clone_github_repos() {
 
 	for repo in $repos
 	do
-		_print_progress "Cloning all $type"
-		clone-all --feed "$type" chrisopedia "$dir" \
-			&& _print_progress "Cloned all $type" \
-			&& _notify_me "clone-all" "cloned" "all $type"
+		_print_progress "Cloning all ${type}s"
+		clone-all --feed "${type}s" chrisopedia "$dir" \
+			&& _print_progress "Cloned all ${type}s" \
+			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
 }
 install_software() {
@@ -402,36 +401,10 @@ setup_games() {
 	do
 		game="$(basename "$game")"
 		_print_progress "Symlinking $dir/$game to $HOME/Applications/$game"
-		ln "$dir/$game" "$HOME/Applications/$game"
+		ln -fs "$dir/$game" "$HOME/Applications/$game"
 	done
 	_print_success "All games symlinked to $dir" \
 		&& _notify_me "All games" "were" "symlinked"
-}
-setup_emus() {
-	local systems=$1
-	local system
-	local dest="$HOME/Library/Application Support/OpenEmu/Game Library"
-
-	open -a "$HOME/Applications/OpenEmu.app"
-	_print_progress "Creating $dest"
-	mkdir -p "$dest" \
-		&& _print_success "Created $dest"
-
-	for system in $systems
-	do
-		local games="$HOME/Code/private/games/$system/*"
-		local game
-		local dir="$(dirname "$games")"
-
-		for game in $games
-		do
-			game="$(basename "$game")"
-			_print_progress "Symlinking $dir/$game to $dir/$game"
-			ln "$dir/$game" "$dest/$game"
-		done
-		_print_progress "All emulators symlinked to $dir" \
-			&& _notify_me "All emulators" "were" "symlinked"
-	done
 }
 setup_httpd() {
 	local file="/private/etc/apache2/httpd.conf"
@@ -507,6 +480,7 @@ setup_hosts() {
 			&& _print_success "Set up $host" \
 			&& _notify_me "$host" "was" "setup"
 	done
+	sudo apachectl restart
 }
 setup_ssh_config() {
 	# @TODO: set up ssh keys for github/bitbucket
@@ -584,7 +558,7 @@ main() {
 
 	# clone all github repositories
 	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
-		&& clone_github_repos "repos gists"
+		&& clone_github_repos "repo gist"
 
 	# Install personal & developer kegs
 	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
@@ -594,7 +568,6 @@ main() {
 	# setup fonts and games
 	setup_fonts
 	setup_games
-	setup_emus "nintendo sega-genesis super-nintendo"
 
 	# setup up Apache httpd configuration
 	setup_httpd
