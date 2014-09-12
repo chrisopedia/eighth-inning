@@ -33,15 +33,6 @@ _is_not_valid_option() {
 	local option=$1
 	printf "bash: %s: %s: invalid option\n" "$PROGNAME" "$option"
 }
-get_app_secret() {
-	printf "\n%s==> What's your InstaPush App Secret?%s " "$(tput setaf 3)" "$(tput sgr0)"
-	read APPSECRET
-	printf "\n"
-
-	if [[ ! -z $APPSECRET ]]; then
-		readonly "$APPSECRET"
-	fi
-}
 _notify_me() {
 	local command=$1
 	local verb=$2
@@ -98,6 +89,14 @@ _require_prog() {
 		exit 2
 	}
 }
+_install_library() {
+	local package=$1
+
+	_print_progress "Installing $package"
+	bash -c "$(curl -#fL raw.github.com/chrisopedia/"$package"/go/install)" \
+		&& _print_progress "Installed $package" \
+		&& _notify_me "$package" "was" "installed"
+}
 _change_text() {
 	local old=$1
 	local new=$2
@@ -152,16 +151,16 @@ _cat_vhost() {
 	local host=$1
 	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
 
-	_setup_permissions
-
-	cat <<- EOM > $file
+	pbcopy <<- EOM
 <VirtualHost *:80>
     ServerName ${host}.com
     ServerAlias dev.${host}.com:4000
-    DocumentRoot "/Users/$USER/Code/clients/$host/_site"
+    DocumentRoot "/Users/$USER/Code/client/$host/_site"
     Options Indexes MultiViews Includes
 </VirtualHost>
 	EOM
+
+	sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file"
 }
 _setup_permissions() {
 	# Ask for the administrator password upfront
@@ -169,7 +168,7 @@ _setup_permissions() {
 
 	# Keep-alive: update existing `sudo` time stamp until 'osxdefaults' has finished
 	while true
-	do 
+	do
 		sudo -n true
 		sleep 60
 		kill -0 "$$" || exit
@@ -233,14 +232,129 @@ cmdline() {
 
 	return 0
 }
-download_library() {
-	local package=$1
-	bash -c "$(curl -#fL raw.github.com/chrisopedia/$package/go/install)" \
-		&& _print_progress "Downloaded & installed $package" \
-		&& _notify_me "$package" "was" "downloaded"
+get_app_secret() {
+	printf "\n%s==> What's your InstaPush App Secret?%s " "$(tput setaf 3)" "$(tput sgr0)"
+	read APPSECRET
+	printf "\n"
+
+	if [[ ! -z $APPSECRET ]]; then
+		readonly "$APPSECRET"
+	fi
+}
+setup_directory_structure() {
+	local dirs=$1
+	local dir
+
+	for dir in $dirs
+	do
+		_print_progress "Creating $HOME/Code/$dir"
+		mkdir -p "$HOME/Code/$dir" \
+			&& _print_success "Created $HOME/Code/$dir" \
+			&& _notify_me "$HOME/Code/$dir" "was" "created"
+	done
+}
+setup_screenshots() {
+	local dir="$HOME/Pictures/Screenshots"
+
+	print_progress "Creating $dir"
+	mkdir -p "$dir" \
+		&& _print_success "Created $dir" \
+		&& _notify_me "Screenshots directory" "was" "created"
+
+	# open keyboard preferences to setup shortcuts for screen shots
+	print_progress "Opening up Keyboard preference pane to setup shortcuts"
+	open "/System/Library/PreferencePanes/Keyboard.prefPane"
+}
+download_avatars() {
+	# Download avatar for immediate use
+	_print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/800x800.png"
+	curl -#flo "$HOME/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png" \
+		&& _print_success "Downloaded http://cdn.chrisopedia.me/images/avatar/800x800.png"
+
+	_print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/full.png"
+	curl -#flo "$HOME/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png" \
+		&& _print_success "Downloaded http://cdn.chrisopedia.me/images/avatar/full.png"
+
+	_notify_me "Avatars" "were" "downloaded"
+}
+remove_pdf() {
+	local pdf="$HOME/Downloads/About Downloads.lpdf"
+
+	# Remove the About Downloads pdf
+	_is_file "$pdf" \
+		&& _print_progress "Removed $pdf" \
+		&& rm -rf "$pdf" \
+		&& _print_success "Created $HOME/Code/$dir" \
+		&& _notify_me "$dir" "was" "created"
+}
+install_libraries() {
+	local libraries=$1
+	local library
+
+	for library in $libraries
+	do
+		_install_library "$library"
+	done
+}
+tap_libraries() {
+	local libraries=$1
+	local library
+
+	for library in $libraries
+	do
+		_print_progress "Tapping homebrew/$library"
+		brew tap "homebrew/$library" \
+			&& _print_success "Tapped homebrew/$library" \
+			&& _notify_me "$library" "was" "tapped"
+	done
+}
+# @TODO: figure out how to install these things from within here
+clone_bitbucket_repos() {
+	local repos=$1
+	local repo
+	local url="https://chrisopedia@bitbucket.org/chrisopedia"
+	local dir="$HOME/Code/private"
+
+	for repo in $repos
+	do
+		_print_progress "Cloning $url/$repo to $dir/$repo"
+		git clone "$url/${repo}.git" "$dir/$repo" \
+			&& _print_success "Cloned $url/$repo to $dir/$repo" \
+			&& _notify_me "$repo repo" "was" "cloned"
+	done
+}
+clone_github_repos() {
+	local type=$1
+	local dir="$HOME/Code/$type"
+
+	for repo in $repos
+	do
+		_print_progress "Cloning all $type"
+		clone-all --feed "$type" chrisopedia "$dir" \
+			&& _print_progress "Cloned all $type" \
+			&& _notify_me "clone-all" "cloned" "all $type"
+	done
+}
+install_software() {
+	local kegs=$1
+	local keg
+
+	_require_prog brew "Homebrew is required to tap libraries" http://brew.sh \
+		&& brew cask install alfred \
+		&& open -a "$HOME/Applications/Alfred Preferences.app"
+
+	for keg in $kegs
+	do
+		_print_progress "kegger is installing $keg"
+		kegger "$keg" \
+			&& _print_success "kegger installed $keg" \
+			&& _notify_me "$keg keg" "was" "downloaded"
+	done
+
+	open -a "/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app"
 }
 # Recursive call to install kegs
-ask_to_install_more_kegs() {
+ask_to_install_more_software() {
 	_notify_me "Kegger" "is" "requesting input"
 	_seek_confirmation "Would you like to install anymore kegs"
 
@@ -252,63 +366,32 @@ ask_to_install_more_kegs() {
 		printf "\n"
 
 		if [[ ! -z $USER_GIST_ID ]]; then
-			bash kegger "$USER_GIST_ID"
+			_print_progress "kegger is installing $USER_GIST_ID"
+			kegger "$USER_GIST_ID" \
+				&& _print_success "kegger installed $USER_GIST_ID" \
+				&& _notify_me "$USER_GIST_ID keg" "was" "downloaded"
 		fi
-		install_kegs
+		ask_to_install_more_software
 	fi
 }
-setup_directory_structure() {
-	local dirs="client gist lagr oss private project"
-	local dir
+setup_fonts() {
+	local fonts="$HOME/Code/private/fonts/default/*"
+	local font
+	local base="$(dirname "$fonts")"
+	local dir="$HOME/Library/Fonts"
 
-	for dir in $dirs
+	_print_progress "Creating $dir"
+	mkdir -p "$dir" \
+		&& _print_success "$dir was created"
+
+	for font in $fonts
 	do
-		mkdir -p "$HOME/Code/$dir" \
-			&& _print_progress "Creating $HOME/Code/$dir" \
-			&& _notify_me "$HOME/Code/$dir" "was" "created"
+		font="$(basename "$font")"
+		_print_progress "Hardlinking $base/$font to $dir/$font"
+		ln "$base/$font" "$dir/$font"
 	done
-	# Remove the About Downloads pdf
-	rm -rf "$HOME/Downloads/About Downloads.lpdf" \
-		&& _print_progress "Removed $HOME/Downloads/About Downloads.lpdf"
-}
-setup_screenshots() {
-	mkdir -p "$HOME/Pictures/Screenshots" \
-		&& _print_progress "Creating $HOME/Pictures/Screenshots" \
-		&& _notify_me "Screenshots directory" "was" "created"
-
-	# open keyboard preferences to setup shortcuts for screen shots
-	open "/System/Library/PreferencePanes/Keyboard.prefPane"
-}
-download_avatars() {
-	# Download avatar for immediate use
-	curl -#flo "$HOME/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png" \
-		&& _print_progress "Downloaded http://cdn.chrisopedia.me/images/avatar/800x800.png"
-	curl -#flo "$HOME/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png" \
-		&& _print_progress "Downloaded http://cdn.chrisopedia.me/images/avatar/full.png"
-	_notify_me "Avatars" "were" "downloaded"
-}
-install_kegs() {
-	local kegs="0b61a78ed66fd94d8277 5ec0bc278d368187cdff 437cc62c5c39bdd2cc67 825c86d6cf41a488d992 63e5cc70f0ad92615242"
-	local keg
-
-	for keg in $kegs
-	do
-		kegger "$keg" \
-			&& _print_progress "kegger is installing $keg" \
-			&& _notify_me "$keg keg" "was" "downloaded"
-	done
-}
-clone_bitbucket_repos() {
-	local repos="app-licenses games fonts httpd"
-	local url="https://chrisopedia@bitbucket.org/chrisopedia"
-	local repo
-
-	for repo in $repos
-	do
-		git clone "$url/${repo}.git" "$HOME/Code/private/$repo" \
-			&& _print_progress "Cloned $url/$repo to $HOME/Code/private/$repo" \
-			&& _notify_me "$repo repo" "was" "cloned"
-	done
+	_print_success "All fonts hardlinked to $dir/" \
+		&& _notify_me "All fonts" "were" "hardlinked"
 }
 setup_games() {
 	local games="$HOME/Code/private/games/mac-apps/*"
@@ -318,109 +401,121 @@ setup_games() {
 	for game in $games
 	do
 		game="$(basename "$game")"
-		ln -fs "$dir/$game" "$HOME/Applications/$game" \
-			&& _print_progress "Symlinked $dir/$game to $HOME/Applications/$game" \
-			&& _notify_me "$game" "was" "symlinked"
+		_print_progress "Symlinking $dir/$game to $HOME/Applications/$game"
+		ln -fs "$dir/$game" "$HOME/Applications/$game"
 	done
+	_print_success "All games symlinked to $dir" \
+		&& _notify_me "All games" "were" "symlinked"
 }
 setup_emus() {
 	local systems=$1
 	local system
 	local dest="$HOME/Library/Application Support/OpenEmu/Game Library"
-	
+
+	open -a "$HOME/Applications/OpenEmu.app"
+	_print_progress "Creating $dest"
+	mkdir -p "$dest" \
+		&& _print_success "Created $dest"
+
 	for system in $systems
 	do
 		local games="$HOME/Code/private/games/$system/*"
 		local game
 		local dir="$(dirname "$games")"
-		
+
 		for game in $games
 		do
 			game="$(basename "$game")"
-			ln -fs "$dir/$game" "$dest/$game" \
-				&& _print_progress "Symlinked $dir/$game to $dir/$game" \
-				&& _notify_me "$game" "was" "symlinked"
+			_print_progress "Symlinking $dir/$game to $dir/$game"
+			ln -fs "$dir/$game" "$dest/$game"
 		done
-	done
-}
-setup_fonts() {
-	local fonts="$HOME/Code/private/fonts/default/*"
-	local font
-	local base="$(dirname "$fonts")"
-	local dir="$HOME/Library/Fonts"
-
-	mkdir -p "$dir" \
-		&& _print_progress "$dir was created"
-
-	for font in $fonts
-	do
-		font="$(basename "$font")"
-		cp "$base/$font" "$dir/$font"
-	done
-	
-	_print_progress "Copied fonts to $dir/" \
-		&& _notify_me "fonts" "were" "installed"
-
-}
-tap_libraries() {
-	local libraries=$1
-	local library
-	local tap_dir="$(brew --prefix)/Library/Taps/homebrew/homebrew"
-
-	for library in $libraries
-	do
-		brew tap "homebrew/$library" \
-			&& _print_progress "Tapped homebrew/$library" \
-			&& _notify_me "$library" "was" "tapped"
+		_print_progress "All emulators symlinked to $dir" \
+			&& _notify_me "All emulators" "were" "symlinked"
 	done
 }
 setup_httpd() {
 	local file="/private/etc/apache2/httpd.conf"
-	_setup_permissions
-	
-	_change_text "\#LoadModule\sphp5_module\slibexec\/apache2\/libphp5\.so" "LoadModule php5_module libexec\/apache2\/libphp5\.so" "$file" \
-		&& _print_progress "Uncommented php5 module"
-	_change_text "\#Include \/private\/etc\/apache2\/extra\/httpd-vhosts\.conf" "Include \/private\/etc\/apache2\/extra\/httpd-vhosts\.conf" "$file" \
-		&& _print_progress "Uncommented httpd-vhosts module"
-	_change_text "\/Library\/WebServer\/Documents" "$HOME\/Code" "$file" \
-		&& _print_progress "Changed web server root to $HOME/Code"
+
+	_print_progress "Uncommenting php5 module"
+	sudo vim -c ":%s:#LoadModule php5_module libexec/apache2/libphp5.so:LoadModule php5_module libexec/apache2/libphp5.so:g" -c ":xa" "$file" \
+		&& _print_success "Uncommented php5 module"
+
+	_print_progress "Uncommenting httpd-vhosts module"
+	sudo vim -c ":%s:#Include /private/etc/apache2/extra/httpd-vhosts.conf:Include /private/etc/apache2/extra/httpd-vhosts.conf:g" -c ":xa" "$file" \
+		&& _print_success "Uncommented httpd-vhosts module"
+
+	_print_progress "Changing web server root to $HOME/Code"
+	sudo vim -c ":%s:/Library/WebServer/Documents:$HOME/Code:g" -c ":xa" "$file" \
+		&& _print_success "Changed web server root to $HOME/Code"
+
 	_notify_me "$file" "was" "configured"
 }
-setup_vhosts() {
-	local hosts="eanewton rinsecup styleguide"
+# http://httpd.apache.org/docs/trunk/howto/public_html.html
+setup_httpd_user() {
+	local file="/private/etc/apache2/extra/httpd-userdir.conf"
 
-	for host in $hosts
-	do
-		_cat_vhost "$host" \
-			&& _print_progress "Set up $host as a vhost" \
-			&& _notify_me "$host" "was" "setup as a vhost"
-	done
+	_print_progress "Changing Sites to Code in $file"
+	sudo vim -c ":%s:Sites:Code:g" -c ":xa" "$file" \
+		&& _print_progress "Changed Sites to Code in $file" \
+		&& _notify_me "$file" "was" "configured"
 }
 setup_user_conf() {
 	local file="/private/etc/apache2/users/${USER}.conf"
-	
+
 	if [ ! "$(ls -A /private/etc/apache2/users)" ]; then
+		_print_progress "Removing default apache user configuration files"
 		sudo rm /private/etc/apache2/users/* \
-			&& _print_progress "Removed default apache user configuration files"
+			&& _print_success "Removed default apache user configuration files"
 	fi
-	
-	_setup_permissions
 
-	cat <<- EOM > $file
-	<Directory "/Users/$USER/Code/">
-		Options Indexes MultiViews
-		AllowOverride None
-		Order allow,deny
-		Allow from all
-	</Directory>
+	_print_progress "Creating ${USER}.conf" \
+	pbcopy <<- EOM
+<Directory "/Users/$USER/Code/">
+	Options Indexes MultiViews
+	AllowOverride None
+	Order allow,deny
+	Allow from all
+</Directory>
 	EOM
-	_print_progress "Created $USER.conf" \
-		&& _notify_me "$file" "was" "created"
 
-	# http://httpd.apache.org/docs/trunk/howto/public_html.html
-	_change_text "Sites" "Code" "/private/etc/apache2/extra/httpd-userdir.conf" \
-		&& _print_progress "Changed Sites to Code in /private/etc/apache2/extra/httpd-userdir.conf" \
-		&& _notify_me "/private/etc/apache2/extra/httpd-userdir.conf" "was" "configured"
+	sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file" \
+		&& _print_success "Created ${USER}.conf" \
+		&& _notify_me "$file" "was" "created"
+}
+setup_vhosts() {
+	local hosts="eanewton rinsecup styleguide"
+	local host
+
+	for host in $hosts
+	do
+		_print_progress "Setting up $host as a vhost"
+		_cat_vhost "$host" \
+			&& _print_success "Set up $host as a vhost" \
+			&& _notify_me "$host" "was" "setup as a vhost"
+	done
+}
+setup_hosts() {
+	local hosts="eanewton rinsecup styleguide"
+	local host
+	local file="/private/etc/hosts"
+
+	for host in $hosts
+	do
+		_print_progress "Setting up $host"
+		printf "127.0.0 dev.%s.com:4000" "$host" | pbcopy
+		sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file" \
+			&& _print_success "Set up $host" \
+			&& _notify_me "$host" "was" "setup"
+	done
+}
+setup_ssh_config() {
+	# @TODO: set up ssh keys for github/bitbucket
+	local file="$HOME/Code/private/httpd/ssh.conf"
+
+	_print_progress "Setting up ssh configuration"
+	cat "$file" >> "$HOME/.ssh/config" \
+		&& _print_success "Set up ssh configuration" \
+		&& _notify_me "$file" "was" "configured"
 }
 symlink_functions() {
 	local dir="$PROGDIR/opt"
@@ -429,20 +524,40 @@ symlink_functions() {
 
 	for file in $functions
 	do
+		_print_progress "Symlinking $dir/$file to /usr/local/bin/$file"
 		ln -fs "$dir/$file" "/usr/local/bin/$file" \
-			&& _print_progress "Symlinked $dir/$file to /usr/local/bin/$file" \
+			&& _print_success "Symlinked $dir/$file to /usr/local/bin/$file" \
 			&& _notify_me "$file" "was" "symlinked"
 	done
 }
-setup_ssh_config() {
-	# @TODO: set up ssh keys for github/bitbucket
-	local file="$HOME/Code/private/httpd/ssh.conf"
+setup_bash_profile() {
+	_print_progress "Moving bash_profile.local to $HOME/"
+	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local" \
+		&& _print_success "Moved bash_profile.local to $HOME/" \
+		&& _notify_me "bash_profile.local" "was" "moved"
+}
+setup_osx_theme() {
+	# setup the osx theme
+	_print_progress "Setting OS X theme to Eighties dark"
+	osx-theme "eighties" "dark" \
+		&& _print_success "Set OS X theme to Eighties dark" \
+		&& _notify_me "osx-theme" "set" "to Eighties dark"
+}
+setup_osx() {
+	# setup the OS X app-specific settings
+	_print_progress "Configuring app-specific settings"
+	bash "$PROGDIR/lib/osx" \
+		&& _print_success "Configured app-specific settings" \
+		&& _notify_me "osx" "configured" "app-specific settings"
 
-	cat "$file" >> "$HOME/.ssh/config" \
-		&& _print_progress "Setup ssh configuration" \
-		&& _notify_me "$file" "was" "configured"
+	# OS X preferences goes last because it will restart the machine
+	_print_progress "Configuring global OS X settings"
+	osx \
+		&& _print_success "Configured global OS X settings" \
+		&& _notify_me "osx" "configured" "global OS X settings"
 }
 
+# main
 main() {
 	cmdline "$ARGS"
 
@@ -450,43 +565,31 @@ main() {
 	get_app_secret
 
 	# setup computer directories
-	setup_directory_structure
+	setup_directory_structure "client gist lagr oss private project repo"
 	setup_screenshots
 	download_avatars
+	remove_pdf
 
-	# Download libraries
-	local libraries="bash-utils clone-all dotfiles git-utils kegger osx osx-theme osx-utils"
-	local library
-	for library in $libraries
-	do
-		download_library "$library"
-	done
-
-	# clone bitbucket libraries
-	clone_bitbucket_repos
+	# install libraries
+	_require_prog curl "curl is required to install libraries" http://curl.haxx.se \
+		&& install_libraries "bash-utils clone-all dotfiles git-utils kegger osx osx-theme osx-utils"
 
 	# tap homebrew libraries
-	tap_libraries "binary games"
+	_require_prog brew "Homebrew is required to tap libraries" http://brew.sh \
+		&& tap_libraries "binary games"
 
-	# Clone all repos
-	_require_prog clone-all "clone-all is required to download repositories" http://chrisopedia.github.io/clone-all \
-		&& clone-all --feed 'repos' chrisopedia "$HOME/Downloads/repos" \
-		&& _print_progress "Cloned all repos" \
-		&& _notify_me "clone-all" "cloned" "all repos"
+	# clone bitbucket libraries
+	_require_prog git "git is required to clone bitbucket repos" http://git-scm.com \
+		&& clone_bitbucket_repos "app-licenses games fonts httpd"
 
-	# Clone all gists
-	_require_prog clone-all "clone-all is required to download gists" http://chrisopedia.github.io/clone-all \
-		&& clone-all --feed 'gists' chrisopedia "$HOME/Code/gist" \
-		&& _print_progress "Cloned all repos" \
-		&& _notify_me "clone-all" "cloned" "all gists"
+	# clone all github repositories
+	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
+		&& clone_github_repos "repos gists"
 
 	# Install personal & developer kegs
 	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
-		&& install_kegs \
-		&& ask_to_install_more_kegs
-
-	open -a "Alfred 2"
-	open -a "/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app"
+		&& install_software "0b61a78ed66fd94d8277 5ec0bc278d368187cdff 437cc62c5c39bdd2cc67 825c86d6cf41a488d992 63e5cc70f0ad92615242" \
+		&& ask_to_install_more_software
 
 	# setup fonts and games
 	setup_fonts
@@ -494,31 +597,26 @@ main() {
 	setup_emus "nintendo sega-genesis super-nintendo"
 
 	# setup up Apache httpd configuration
-	setup_user_conf
 	setup_httpd
+	setup_httpd_user
+	setup_user_conf
 	setup_vhosts
+	setup_hosts
 	setup_ssh_config
 
 	# symlink functions
 	symlink_functions
 
 	# move bash_profile
-	mv "$PROGDIR/conf/bash_profile.local" "$HOME/.bash_profile.local" \
-		&& _print_progress "Moved bash_profile.local to $HOME/" \
-		&& _notify_me "bash_profile.local" "was" "moved"
+	setup_bash_profile
 
 	# setup the osx theme
-	# osx-theme "eighties" "dark" && _print_progress "OS X theme was set to eighties, dark style" && _notify_me "osx theme" "was" "set to eighties, dark style"
+	_require_prog osx-theme "osx-theme is required to setup OS X" http://chrisopedia.github.io/osx-theme \
+		&& setup_osx_theme
 
 	# run the osx setup
-	bash "$PROGDIR/lib/osx" \
-		&& _print_progress "Configured app-specific settings" \
-		&& _notify_me "osx" "configured" "app-specific settings"
-
-	# OSX preferences goes last because it will restart the machine
-	osx \
-		&& _print_progress "Configured global OS X settings" \
-		&& _notify_me "osx" "configure" "global OS X settings"
+	_require_prog osx "osx is required to setup OS X" http://chrisopedia.github.io/osx \
+		&& setup_osx
 }
 
 main
