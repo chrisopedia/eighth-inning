@@ -401,7 +401,7 @@ setup_games() {
 	do
 		game="$(basename "$game")"
 		_print_progress "Symlinking $dir/$game to $HOME/Applications/$game"
-		ln -fs "$dir/$game" "$HOME/Applications/$game"
+		ln -hfs "$dir/$game" "$HOME/Applications/$game"
 	done
 	_print_success "All games symlinked to $dir" \
 		&& _notify_me "All games" "were" "symlinked"
