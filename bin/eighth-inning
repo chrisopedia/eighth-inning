@@ -475,7 +475,7 @@ setup_hosts() {
 	for host in $hosts
 	do
 		_print_progress "Setting up $host"
-		printf "127.0.0 dev.%s.com:4000" "$host" | pbcopy
+		printf "127.0.0.1 dev.%s.com:4000" "$host" | pbcopy
 		sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file" \
 			&& _print_success "Set up $host" \
 			&& _notify_me "$host" "was" "setup"
