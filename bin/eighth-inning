@@ -372,6 +372,9 @@ ask_to_install_more_software() {
 		fi
 		ask_to_install_more_software
 	fi
+
+	brew cleanup --force -s
+	rm -rf "$(brew --cache)"
 }
 setup_fonts() {
 	local fonts="$HOME/Code/private/fonts/default/*"
@@ -483,13 +486,42 @@ setup_hosts() {
 	sudo apachectl restart
 }
 setup_ssh_config() {
-	# @TODO: set up ssh keys for github/bitbucket
 	local file="$HOME/Code/private/httpd/ssh.conf"
 
 	_print_progress "Setting up ssh configuration"
 	cat "$file" >> "$HOME/.ssh/config" \
 		&& _print_success "Set up ssh configuration" \
 		&& _notify_me "$file" "was" "configured"
+}
+ask_to_setup_more_ssh() {
+	_notify_me "Eighth Inning" "is" "requesting input"
+	_seek_confirmation "Would you like to setup anymore ssh keys"
+
+	if _is_confirmed; then
+		printf "\n%s⚠ Warning: Specify another identity (e.g. Feeln, Rubicon, etc.)!\n" "$(tput setaf 3)" "$(tput sgr0) $message"
+		read SSH_IDENTITY
+		printf "\n"
+
+		if [[ ! -z $SSH_IDENTITY ]]; then
+			setup_ssh_keys "$SSH_IDENTITY"
+		fi
+	fi
+}
+setup_ssh_keys() {
+	local identities=$1
+	local identity
+
+	for identity in $identities
+	do
+		_print_progress "Setting up $identity ssh key"
+		ssh-keygen -t rsa -C "chrisohpedia@gmail.com" -f "$HOME/.ssh/$identity" \
+			&& eval "$(ssh-agent -s)" \
+			&& ssh-add "$HOME/.ssh/$identity" \
+			&& pbcopy < "$HOME/.ssh/${identity}.pub" \
+			&& _print_success "Set up $identity ssh key" \
+			&& _notify_me "$identity ssh" "was" "set up"
+	done
+	ask_to_setup_more_ssh
 }
 symlink_functions() {
 	local dir="$PROGDIR/opt"
@@ -518,6 +550,9 @@ setup_osx_theme() {
 		&& _notify_me "osx-theme" "set" "to Eighties dark"
 }
 setup_osx() {
+	# update software
+	sudo softwareupdate --install --all
+
 	# setup the OS X app-specific settings
 	_print_progress "Configuring app-specific settings"
 	bash "$PROGDIR/lib/osx" \
@@ -576,6 +611,8 @@ main() {
 	setup_vhosts
 	setup_hosts
 	setup_ssh_config
+	setup_ssh_keys "github bitbucket" \
+		&& ask_to_setup_more_ssh
 
 	# symlink functions
 	symlink_functions
