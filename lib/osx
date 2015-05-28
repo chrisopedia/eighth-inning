@@ -6,7 +6,7 @@ setup_permissions() {
 
 	# Keep-alive: update existing `sudo` time stamp until 'osxdefaults' has finished
 	while true
-	do 
+	do
 		sudo -n true
 		sleep 60
 		kill -0 "$$" || exit
@@ -21,6 +21,10 @@ setup_computer() {
 	if [[ ! -z "${COMPUTER_NAME}" ]]; then
 		sudo systemsetup -setcomputername "${COMPUTER_NAME}" &> /dev/null
 		sudo systemsetup -setlocalsubnetname "${COMPUTER_NAME}" &> /dev/null
+		sudo scutil --set ComputerName "${COMPUTER_NAME}"
+		sudo scutil --set HostName "${COMPUTER_NAME}"
+		sudo scutil --set LocalHostName "${COMPUTER_NAME}"
+		sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${COMPUTER_NAME}"
 	fi
 }
 
@@ -44,11 +48,11 @@ setup_defaults() {
 setup_alfred() {
 	# @TODO: need to install/setup Alfred
 	open -a "Alfred 2"
-	cat "$HOME/Code/private/app-licenses/alfred2.license" | pbcopy
+	pbcopy < "$HOME/Code/private/app-licenses/alfred2.license"
 	# defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
 	# Base 16 Eighties Light
 	# alfred.theme.custom.48B3B070-0936-4850-BE43-BD693C917078
-	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string '$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred'
+	defaults write com.runningwithcrayons.Alfred-Preferences 'syncfolder' -string "$HOME/Library/Mobile Documents/com~runningwithcrayons~Alfred"
 	defaults write com.runningwithcrayons.Alfred-Preferences 'hotkey.default = { key = 49; mod = 1048576; string = "Space"; };'
 }
 
@@ -73,7 +77,7 @@ setup_marked() {
 	local files="/usr/local/opt/eighth-inning/lib/marked/*"
 	local file
 	local dir="$HOME/Library/Services"
-	
+
 	if [[ ! -d "$dir" ]]; then
 		mkdir -p "$dir"
 	fi
@@ -93,6 +97,7 @@ killall_apps() {
 }
 
 main() {
+	softwareupdate -ia
 	setup_computer
 	setup_permissions
 	setup_defaults
