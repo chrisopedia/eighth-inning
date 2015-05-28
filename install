@@ -16,7 +16,7 @@ _process() {
 
 # Check for Homebrew; install brew
 if ! type -P 'brew' &> /dev/null; then
-	ruby -e "$(curl -#fkL raw.github.com/Homebrew/homebrew/go/install)"
+	ruby -e "$(curl -#fkL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
 	_process "Running brew doctor"
 	brew doctor
