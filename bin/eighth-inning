@@ -286,6 +286,17 @@ remove_pdf() {
 		&& _print_success "Created $HOME/Code/$dir" \
 		&& _notify_me "$dir" "was" "created"
 }
+install_tools() {
+	local tools=$1
+	local tool
+	local dest="${HOME}/Code/tools"
+
+	_is_dir "$dest" &&
+		for tool in $tools
+		do
+			git clone "https://github.com/${tool}.git ${HOME}/Code/tools/${tool}"
+		done
+}
 install_libraries() {
 	local libraries=$1
 	local library
@@ -574,10 +585,11 @@ main() {
 	get_app_secret
 
 	# setup computer directories
-	setup_directory_structure "client gist lagr oss private project repo"
+	setup_directory_structure "client gist lagr oss private project repo tools"
 	setup_screenshots
 	download_avatars
 	remove_pdf
+	install_tools "cern-hackdays/lmb MicrosoftEdge/static-code-scan"
 
 	# install libraries
 	_require_prog curl "curl is required to install libraries" http://curl.haxx.se \
