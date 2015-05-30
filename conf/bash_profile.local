@@ -6,6 +6,12 @@ export CODE_DIRECTORY="${HOME}/Code"
 # Hit the Code directory from anywhere
 alias code="cd ${CODE_DIRECTORY}"
 
+# Alias hcl to Harvest Account
+alias hcl="env HCL_DIR=~/.hcl hcl"
+
+# Alias hcl to F+T Harvest Account
+alias fathcl="env HCL_DIR=~/.fathcl hcl"
+
 # Open Today's todo list
 alias morning="today --open"
 
