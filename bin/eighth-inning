@@ -39,14 +39,6 @@ _notify_me() {
 	local status=$3
 	local timestamp="$(date)"
 
-	# https://instapush.im/dashboard/info/53c74193a4c48a4f48fb0818
-	_is_not_empty "$APPSECRET" \
-	&& curl -s -X POST \
-		-H "x-instapush-appid: 53c74193a4c48a4f48fb0818" \
-		-H "x-instapush-appsecret: $APPSECRET" \
-		-H "Content-Type: application/json" \
-		-d "{ \"event\" : \"command_status\", \"trackers\" : { \"command\" : \"${command}\", \"verb\" : \"${verb}\", \"status\" : \"${status}\", \"timestamp\" : \"${timestamp}\" } }" \
-		https://api.instapush.im/v1/post > /dev/null
 	terminal-notifier -title "$PROGNAME" -message "$command $verb $status at $timestamp" -activate "com.apple.Terminal"
 }
 _print_error() {
@@ -146,21 +138,6 @@ _run_tests() {
 _version() {
 	printf 'Version %s\n' "$VERSION"
 }
-_cat_vhost() {
-	local host=$1
-	local file="/private/etc/apache2/extra/httpd-vhosts.conf"
-
-	pbcopy <<- EOM
-<VirtualHost *:80>
-    ServerName ${host}.com
-    ServerAlias dev.${host}.com:4000
-    DocumentRoot "/Users/$USER/Code/client/$host/_site"
-    Options Indexes MultiViews Includes
-</VirtualHost>
-	EOM
-
-	sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file"
-}
 _setup_permissions() {
 	# Ask for the administrator password upfront
 	sudo -v
@@ -230,15 +207,6 @@ cmdline() {
 	done
 
 	return 0
-}
-get_app_secret() {
-	printf "\n%s==> What's your InstaPush App Secret?%s " "$(tput setaf 3)" "$(tput sgr0)"
-	read APPSECRET
-	printf "\n"
-
-	if [[ ! -z $APPSECRET ]]; then
-		readonly "$APPSECRET"
-	fi
 }
 setup_directory_structure() {
 	local dirs=$1
@@ -420,69 +388,8 @@ setup_games() {
 	_print_success "All games symlinked to $dir" \
 		&& _notify_me "All games" "were" "symlinked"
 }
-setup_httpd() {
-	local file="/private/etc/apache2/httpd.conf"
-
-	_print_progress "Uncommenting php5 module"
-	sudo vim -c ":%s:#LoadModule php5_module libexec/apache2/libphp5.so:LoadModule php5_module libexec/apache2/libphp5.so:g" -c ":xa" "$file" \
-		&& _print_success "Uncommented php5 module"
-
-	_print_progress "Uncommenting httpd-vhosts module"
-	sudo vim -c ":%s:#Include /private/etc/apache2/extra/httpd-vhosts.conf:Include /private/etc/apache2/extra/httpd-vhosts.conf:g" -c ":xa" "$file" \
-		&& _print_success "Uncommented httpd-vhosts module"
-
-	_print_progress "Changing web server root to $HOME/Code"
-	sudo vim -c ":%s:/Library/WebServer/Documents:$HOME/Code:g" -c ":xa" "$file" \
-		&& _print_success "Changed web server root to $HOME/Code"
-
-	_notify_me "$file" "was" "configured"
-}
-# http://httpd.apache.org/docs/trunk/howto/public_html.html
-setup_httpd_user() {
-	local file="/private/etc/apache2/extra/httpd-userdir.conf"
-
-	_print_progress "Changing Sites to Code in $file"
-	sudo vim -c ":%s:Sites:Code:g" -c ":xa" "$file" \
-		&& _print_progress "Changed Sites to Code in $file" \
-		&& _notify_me "$file" "was" "configured"
-}
-setup_user_conf() {
-	local file="/private/etc/apache2/users/${USER}.conf"
-
-	if [ ! "$(ls -A /private/etc/apache2/users)" ]; then
-		_print_progress "Removing default apache user configuration files"
-		sudo rm /private/etc/apache2/users/* \
-			&& _print_success "Removed default apache user configuration files"
-	fi
-
-	_print_progress "Creating ${USER}.conf" \
-	pbcopy <<- EOM
-<Directory "/Users/$USER/Code/">
-	Options Indexes MultiViews
-	AllowOverride None
-	Order allow,deny
-	Allow from all
-</Directory>
-	EOM
-
-	sudo vim + -c "startinsert" -c ":r !pbpaste" -c ":xa" "$file" \
-		&& _print_success "Created ${USER}.conf" \
-		&& _notify_me "$file" "was" "created"
-}
-setup_vhosts() {
-	local hosts="eanewton rinsecup styleguide"
-	local host
-
-	for host in $hosts
-	do
-		_print_progress "Setting up $host as a vhost"
-		_cat_vhost "$host" \
-			&& _print_success "Set up $host as a vhost" \
-			&& _notify_me "$host" "was" "setup as a vhost"
-	done
-}
 setup_hosts() {
-	local hosts="eanewton rinsecup styleguide"
+	local hosts="eanewton rinsecup"
 	local host
 	local file="/private/etc/hosts"
 
@@ -581,27 +488,19 @@ setup_osx() {
 main() {
 	cmdline "$ARGS"
 
-	# prep the notification libraries
-	get_app_secret
-
 	# setup computer directories
-	setup_directory_structure "client gist lagr oss private project repo tools"
+	setup_directory_structure "clients gists lagr oss private projects repos"
 	setup_screenshots
 	download_avatars
-	remove_pdf
-	install_tools "cern-hackdays/lmb MicrosoftEdge/static-code-scan"
+	# install_tools "cern-hackdays/lmb MicrosoftEdge/static-code-scan" (commented as don't use it much)
 
 	# install libraries
 	_require_prog curl "curl is required to install libraries" http://curl.haxx.se \
 		&& install_libraries "bash-utils clone-all dotfiles git-utils kegger osx osx-theme osx-utils"
 
-	# tap homebrew libraries
-	_require_prog brew "Homebrew is required to tap libraries" http://brew.sh \
-		&& tap_libraries "binary games"
-
 	# clone bitbucket libraries
 	_require_prog git "git is required to clone bitbucket repos" http://git-scm.com \
-		&& clone_bitbucket_repos "app-licenses games fonts httpd"
+		&& clone_bitbucket_repos "games fonts httpd"
 
 	# clone all github repositories
 	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
@@ -617,10 +516,6 @@ main() {
 	setup_games
 
 	# setup up Apache httpd configuration
-	setup_httpd
-	setup_httpd_user
-	setup_user_conf
-	setup_vhosts
 	setup_hosts
 	setup_ssh_config
 	setup_ssh_keys "github bitbucket" \
