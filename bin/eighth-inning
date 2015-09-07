@@ -449,8 +449,8 @@ symlink_functions() {
 
 	for file in $functions
 	do
-		_print_progress "Symlinking $dir/$file to /usr/local/bin/$file"
-		ln -fs "$dir/$file" "/usr/local/bin/$file" \
+		_print_progress "Copying $dir/$file to /usr/local/bin/$file"
+		cp "$dir/$file" "/usr/local/bin/$file" \
 			&& _print_success "Symlinked $dir/$file to /usr/local/bin/$file" \
 			&& _notify_me "$file" "was" "symlinked"
 	done
