@@ -490,7 +490,7 @@ main() {
 	cmdline "$ARGS"
 
 	# setup computer directories
-	setup_directory_structure "clients gists lagr oss private projects repos"
+	setup_directory_structure "clients gist lagr oss private projects repo"
 	setup_screenshots
 	download_avatars
 	# install_tools "cern-hackdays/lmb MicrosoftEdge/static-code-scan" (commented as don't use it much)
