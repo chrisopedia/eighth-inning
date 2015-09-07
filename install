@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 REPO="eighth-inning"
+DIR="/tmp/${REPO}"
 GITHUB_USER="chrisopedia"
 
 # Success logging
@@ -29,12 +30,21 @@ fi
 printf "%s┃%s Downloading repository to /tmp directory...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "$(tput sgr0)"
 curl -#fLo /tmp/${REPO}.tar.gz "https://github.com/${GITHUB_USER}/${REPO}/tarball/master"
 
-# Extract to the ${REPO} directory
-printf "%s┃%s Extracting files to %s...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "${REPO}" "$(tput sgr0)"
-tar -zxf /tmp/${REPO}.tar.gz --strip-components 1 -C .
+if [[ ! -d "${DIR}" ]] then
+	mkdir -p "${DIR}"
+	
+	# Extract to the ${REPO} directory
+	printf "%s┃%s Extracting files to %s...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "${REPO}" "$(tput sgr0)"
+	tar -zxf /tmp/${REPO}.tar.gz --strip-components 1 -C "/tmp/${REPO}"
+fi
 
-# Remove the tarball
-printf "%s┃%s Removing tarball from /tmp directory...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "$(tput sgr0)"
-rm -rf /tmp/${REPO}.tar.gz
+if [[ ! -f /tmp/${REPO}.tar.gz ]] then
+	printf "%s⊘ Error:%s %s. Aborting!\n\n" "$(tput setaf 1)" "$(tput sgr0)" "No tarball in /tmp directory..."
+	exit 1
+else
+	# Remove the tarball
+	printf "%s┃%s Removing tarball from /tmp directory...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "$(tput sgr0)"
+	rm -rf /tmp/${REPO}.tar.gz
+fi
 
 printf "%s✓ Success:%s %s created, repository downloaded and extracted.\n" "$(tput setaf 2)" "$(tput sgr0)" "${REPO}"
