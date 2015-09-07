@@ -223,13 +223,13 @@ setup_directory_structure() {
 setup_screenshots() {
 	local dir="$HOME/Pictures/Screenshots"
 
-	print_progress "Creating $dir"
+	_print_progress "Creating $dir"
 	mkdir -p "$dir" \
 		&& _print_success "Created $dir" \
 		&& _notify_me "Screenshots directory" "was" "created"
 
 	# open keyboard preferences to setup shortcuts for screen shots
-	print_progress "Opening up Keyboard preference pane to setup shortcuts"
+	_print_progress "Opening up Keyboard preference pane to setup shortcuts"
 	open "/System/Library/PreferencePanes/Keyboard.prefPane"
 }
 download_avatars() {
