@@ -21,7 +21,6 @@ if ! type -P 'brew' &> /dev/null; then
 	brew doctor
 
 	brew install terminal-notifier
-	brew linkapps --local
 
 	[[ $? ]] && _success "Homebrew installed"
 fi
