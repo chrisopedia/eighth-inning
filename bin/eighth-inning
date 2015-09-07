@@ -501,7 +501,7 @@ main() {
 
 	# clone bitbucket libraries
 	_require_prog git "git is required to clone bitbucket repos" http://git-scm.com \
-		&& clone_bitbucket_repos "games fonts httpd"
+		&& clone_bitbucket_repos "app-licenses games fonts httpd"
 
 	# clone all github repositories
 	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
