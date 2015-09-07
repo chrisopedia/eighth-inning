@@ -442,16 +442,16 @@ setup_ssh_keys() {
 	done
 	ask_to_setup_more_ssh
 }
-symlink_functions() {
+copy_functions() {
 	local dir="$PROGDIR/opt"
 	local functions="$(find "$dir" -type f -execdir echo {} +)"
 	local file
 
 	for file in $functions
 	do
-		_print_progress "Copying $dir/$file to /usr/local/bin/$file"
-		cp "$dir/$file" "/usr/local/bin/$file" \
-			&& _print_success "Symlinked $dir/$file to /usr/local/bin/$file" \
+		_print_progress "Copying $dir/$file to /usr/local/opt/$file"
+		cp "$dir/$file" "/usr/local/opt/$file" \
+			&& _print_success "Copied $dir/$file to /usr/local/opt/$file" \
 			&& _notify_me "$file" "was" "symlinked"
 	done
 }
