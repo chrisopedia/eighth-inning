@@ -236,6 +236,7 @@ download_avatars() {
 	# Download avatar for immediate use
 	_print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/800x800.png"
 	curl -#flo "$HOME/Pictures/avatar.png" "http://cdn.chrisopedia.me/images/avatar/800x800.png" \
+		&& cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/avatar.png" \
 		&& _print_success "Downloaded http://cdn.chrisopedia.me/images/avatar/800x800.png"
 
 	_print_progress "Downloading http://cdn.chrisopedia.me/images/avatar/full.png"
