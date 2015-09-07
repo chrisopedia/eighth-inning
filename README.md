@@ -13,7 +13,8 @@ I didn't like the connection between setting up your development machine, or `.d
 ## How to install
 
 ```bash
-$ bash -c "$(curl -#fL raw.github.com/chrisopedia/eighth-inning/go/install)"
+$ bash -c "$(curl -#fL raw.github.com/chrisopedia/eighth-inning/go/install)" && \
+    bash /tmp/eighth-inning/bin/eighth-inning
 ```
 
 ## Contributing
