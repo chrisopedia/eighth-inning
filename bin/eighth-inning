@@ -518,8 +518,7 @@ main() {
 	# setup up Apache httpd configuration
 	setup_hosts
 	setup_ssh_config
-	setup_ssh_keys "github bitbucket" \
-		&& ask_to_setup_more_ssh
+	setup_ssh_keys "github bitbucket"
 
 	# symlink functions
 	symlink_functions
