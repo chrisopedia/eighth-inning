@@ -513,6 +513,7 @@ main() {
 		&& ask_to_install_more_software
 
 	# setup fonts and games
+	_install_library "alfred-workflows"
 	setup_fonts
 	setup_games
 
