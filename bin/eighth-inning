@@ -305,11 +305,14 @@ clone_bitbucket_repos() {
 clone_github_repos() {
 	local type=$1
 	local dir="$HOME/Code/$type"
+	if [[ "${type}" != 'repos' || "${type}" != 'gists' ]]; then
+		type="repos"
+	fi	
 
 	for repo in $repos
 	do
 		_print_progress "Cloning all ${type}s"
-		clone-all --feed "${type}s" chrisopedia "$dir" \
+		clone-all --feed "${type}" chrisopedia "$dir" \
 			&& _print_progress "Cloned all ${type}s" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
@@ -490,7 +493,7 @@ main() {
 	cmdline "$ARGS"
 
 	# setup computer directories
-	setup_directory_structure "clients gist lagr oss private projects repo"
+	setup_directory_structure "clients gists lagrco oss private projects repos"
 	setup_screenshots
 	download_avatars
 	# install_tools "cern-hackdays/lmb MicrosoftEdge/static-code-scan" (commented as don't use it much)
@@ -505,7 +508,7 @@ main() {
 
 	# clone all github repositories
 	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
-		&& clone_github_repos "repo gist"
+		&& clone_github_repos "repos gists lagrco assemblerui"
 
 	# Install personal & developer kegs
 	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
