@@ -4,7 +4,7 @@
 export CODE_DIRECTORY="${HOME}/Code"
 
 # Hit the Code directory from anywhere
-alias code="cd ${CODE_DIRECTORY}"
+alias code='cd ${CODE_DIRECTORY}'
 
 # Alias hcl to Harvest Account
 alias hcl="env HCL_DIR=~/.hcl hcl"
