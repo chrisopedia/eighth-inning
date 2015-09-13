@@ -303,11 +303,12 @@ clone_bitbucket_repos() {
 	done
 }
 clone_github_repos() {
-	local type=$1
+	local input="$1"
+	local type="repos"
 	local dir="$HOME/Code/$type"
-	if [[ "${type}" != 'repos' || "${type}" != 'gists' ]]; then
-		type="repos"
-	fi	
+
+	_is_not_empty "${input}" && \
+		type="${input}"
 
 	for repo in $repos
 	do
@@ -533,6 +534,10 @@ main() {
 
 	# setup Harvest cli
 	hcl
+
+	# setup twitter cli
+	unset BROWSER
+	t authorize
 
 	# setup the osx theme
 	_require_prog osx-theme "osx-theme is required to setup OS X" http://chrisopedia.github.io/osx-theme \
