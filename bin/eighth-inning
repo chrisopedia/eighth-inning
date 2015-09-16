@@ -243,6 +243,10 @@ download_avatars() {
 	curl -#flo "$HOME/Pictures/ralph-and-i.png" "http://cdn.chrisopedia.me/images/avatar/full.png" \
 		&& _print_success "Downloaded http://cdn.chrisopedia.me/images/avatar/full.png"
 
+	_print_progress "Downloading http://cdn.chrisopedia.me/images/com.apple.desktop.admin.png"
+	curl -#flo "/Library/Caches/com.apple.desktop.admin.png" "http://cdn.chrisopedia.me/images/com.apple.desktop.admin.png" \
+		&& _print_success "Downloaded http://cdn.chrisopedia.me/images/com.apple.desktop.admin.png"
+
 	_notify_me "Avatars" "were" "downloaded"
 }
 remove_pdf() {
