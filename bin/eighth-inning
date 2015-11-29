@@ -245,7 +245,8 @@ download_avatars() {
 
 	# http://www.tekrevue.com/tip/custom-login-screen-wallpaper-os-x-yosemite/
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
-	curl -#flo "/Library/Caches/com.apple.desktop.admin.png" "https://chrisopedia.github.io/cdn/images/wallpapers/com.apple.desktop.admin.png" \
+	curl -#flo "$HOME/Pictures/com.apple.desktop.admin.png" "https://chrisopedia.github.io/cdn/images/wallpapers/com.apple.desktop.admin.png" \
+		&& cp "$HOME/Pictures/com.apple.desktop.admin.png" "Library/Caches/com.apple.desktop.admin.png" \
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
 
 	_notify_me "Avatars" "were" "downloaded"
