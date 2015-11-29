@@ -533,7 +533,7 @@ main() {
 	setup_ssh_keys "github bitbucket"
 
 	# symlink functions
-	symlink_functions
+	# symlink_functions
 
 	# move bash_profile
 	setup_bash_profile
