@@ -339,8 +339,6 @@ install_software() {
 			&& _print_success "kegger installed $keg" \
 			&& _notify_me "$keg keg" "was" "downloaded"
 	done
-
-	open -a "/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app"
 }
 # Recursive call to install kegs
 ask_to_install_more_software() {
