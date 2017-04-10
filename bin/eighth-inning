@@ -443,7 +443,7 @@ setup_ssh_keys() {
 		_print_progress "Setting up $identity ssh key"
 		ssh-keygen -t rsa -C "chrisohpedia@gmail.com" -f "$HOME/.ssh/$identity" \
 			&& eval "$(ssh-agent -s)" \
-			&& ssh-add "$HOME/.ssh/$identity" \
+			&& ssh-add -K "$HOME/.ssh/$identity" \
 			&& pbcopy < "$HOME/.ssh/${identity}.pub" \
 			&& _print_success "Set up $identity ssh key" \
 			&& _notify_me "$identity ssh" "was" "set up"
