@@ -92,3 +92,6 @@ alias vu="vim +PluginInstall +qall"
 
 # Make Grunt print stack traces by default
 #command -v grunt > /dev/null && alias grunt="grunt --stack"
+
+# set up the proxy for Lean In and run build script
+alias leanin="sudo apachectl stop && docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy && ./run"
