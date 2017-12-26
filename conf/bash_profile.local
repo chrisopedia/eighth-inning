@@ -95,3 +95,6 @@ alias vu="vim +PluginInstall +qall"
 
 # set up the proxy for Lean In and run build script
 alias leanin="sudo apachectl stop && docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy && ./run"
+
+# reinstall deps
+alias npmplease="rm -rf node_modules/ && rm -f package-lock.json && npm install"
