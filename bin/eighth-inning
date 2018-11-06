@@ -536,13 +536,6 @@ main() {
 	# move bash_profile
 	setup_bash_profile
 
-	# setup Harvest cli
-	hcl
-
-	# setup twitter cli
-	unset BROWSER
-	t authorize
-
 	# setup the osx theme
 	_require_prog osx-theme "osx-theme is required to setup OS X" http://chrisopedia.github.io/osx-theme \
 		&& setup_osx_theme
