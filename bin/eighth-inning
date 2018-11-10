@@ -236,7 +236,7 @@ download_avatars() {
 	# Download avatar for immediate use
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 	curl -#flo "$HOME/Pictures/avatar.png" "https://chrisopedia.github.io/cdn/images/avatar/800x800.png" \
-		&& cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/avatar.png" \
+		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/avatar.png" \
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/full.png"
@@ -246,7 +246,7 @@ download_avatars() {
 	# http://www.tekrevue.com/tip/custom-login-screen-wallpaper-os-x-yosemite/
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
 	curl -#flo "$HOME/Pictures/com.apple.desktop.admin.png" "https://chrisopedia.github.io/cdn/images/wallpapers/com.apple.desktop.admin.png" \
-		&& cp "$HOME/Pictures/com.apple.desktop.admin.png" "Library/Caches/com.apple.desktop.admin.png" \
+		&& sudo cp "$HOME/Pictures/com.apple.desktop.admin.png" "Library/Caches/com.apple.desktop.admin.png" \
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
 
 	_notify_me "Avatars" "were" "downloaded"
