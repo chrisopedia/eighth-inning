@@ -361,7 +361,7 @@ ask_to_install_more_software() {
 		ask_to_install_more_software
 	fi
 
-	brew cleanup --force -s
+	brew cleanup -s
 	rm -rf "$(brew --cache)"
 }
 setup_fonts() {
