@@ -47,7 +47,7 @@ setup_defaults() {
 
 setup_alfred() {
 	# @TODO: need to install/setup Alfred
-	open -a "Alfred 2"
+	open -a "Alfred 3"
 	pbcopy < "$HOME/Code/private/app-licenses/alfred2.license"
 	# defaults write com.runningwithcrayons.Alfred-Preferences 'appearance.theme' -string 'alfred.theme.custom.B23A1C25-5CC1-4A47-90D3-06409E83D0E7'
 	# Base 16 Eighties Light
@@ -57,6 +57,22 @@ setup_alfred() {
 }
 
 setup_chrome() {
+	# Disable the all too sensitive backswipe on trackpads
+	defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
+	defaults write com.google.Chrome.canary AppleEnableSwipeNavigateWithScrolls -bool false
+
+	# Disable the all too sensitive backswipe on Magic Mouse
+	defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
+	defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls -bool false
+
+	# Use the system-native print preview dialog
+	defaults write com.google.Chrome DisablePrintPreview -bool true
+	defaults write com.google.Chrome.canary DisablePrintPreview -bool true
+
+	# Expand the print dialog by default
+	defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
+	defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
+
 	# Allow installing user scripts via GitHub or Userscripts.org
 	defaults write com.google.Chrome ExtensionInstallSources -array "https://*.github.com/*" "http://userscripts.org/*"
 	defaults write com.google.Chrome.canary ExtensionInstallSources -array "https://*.github.com/*" "http://userscripts.org/*"
@@ -71,6 +87,11 @@ setup_iterm() {
 setup_openemu() {
 	# Enable 'Secrets' preferences tab (debug menu)
 	defaults write org.openemu.OpenEmu debug -bool true
+}
+
+setup_tweetbot() {
+	# Enable 'Secrets' preferences tab (debug menu)
+	defaults write com.tapbots.TweetbotMac OpenURLsDirectly -bool true
 }
 
 setup_marked() {
@@ -90,7 +111,7 @@ setup_marked() {
 
 killall_apps() {
 	local app
-	for app in "Alfred" "Chrome" "iTerm" "Open Emu" "SystemUIServer"
+	for app in "Alfred" "Chrome" "iTerm" "Open Emu" "Tweetbot" "SystemUIServer"
 	do
 		killall "${app}" > /dev/null 2>&1
 	done
@@ -106,6 +127,7 @@ main() {
 	setup_iterm
 	setup_marked
 	setup_openemu
+	setup_tweetbot
 	killall_apps
 }
 
