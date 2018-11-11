@@ -245,7 +245,7 @@ download_avatars() {
 	# Download avatar for immediate use
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 	curl -#flo "$HOME/Pictures/avatar.png" "https://chrisopedia.github.io/cdn/images/avatar/800x800.png" \
-		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/avatar.png" \
+		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/" \
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/full.png"
@@ -308,18 +308,29 @@ clone_bitbucket_repos() {
 	done
 }
 clone_github_repos() {
-	local repos=$1
-	local repo
-	local type="repos"
-	local dir="$HOME/Code/$type"
+	local orgs=$1
+	local org
 
-	_is_not_empty "${repos}" && \
-		type="${repos}"
-
-	for repo in $repos
+	for org in $orgs
 	do
-		_print_progress "Cloning all ${type}s from $repo"
-		clone-all --feed "${type}" chrisopedia "$dir" \
+		_print_progress "Cloning all repos from ${org}"
+		local dir="$HOME/Code/${org}/repos"
+		mkdir -p ${dir} \
+			&& clone-all --feed repos" ${org} "$dir" \
+			&& _print_progress "Cloned all ${type}s" \
+			&& _notify_me "clone-all" "cloned" "all ${type}s"
+	done
+}
+clone_github_gists() {
+	local orgs=$1
+	local org
+
+	for org in $orgs
+	do
+		_print_progress "Cloning all gists from ${org}"
+		local dir="$HOME/Code/${org}/gists"
+		mkdir -p ${dir} \
+			&& clone-all --feed gists ${org} "$dir" \
 			&& _print_progress "Cloned all ${type}s" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
@@ -391,7 +402,7 @@ setup_games() {
 	for game in $games
 	do
 		game="$(basename "$game")"
-		_print_progress "Symlinking $dir/$game to $HOME/Applications/$game"
+		_print_progress "Symlinking $dir/$game to /Applications/$game"
 		ln -hfs "$dir/$game" "$HOME/Applications/$game"
 	done
 	_print_success "All games symlinked to $dir" \
@@ -512,8 +523,12 @@ main() {
 		&& clone_bitbucket_repos "app-licenses games fonts httpd"
 
 	# clone all github repositories
-	_require_prog clone-all "clone-all is required to download repos & gists" http://chrisopedia.github.io/clone-all \
-		&& clone_github_repos "repos gists lagrco assemblerui"
+	_require_prog clone-all "clone-all is required to download repos" http://chrisopedia.github.io/clone-all \
+		&& clone_github_repos "chrisopedia lagrco assemblerui"
+
+	# clone all github gists
+	_require_prog clone-all "clone-all is required to download gists" http://chrisopedia.github.io/clone-all \
+		&& clone_github_repos "chrisopedia"
 
 	# Install personal & developer kegs
 	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
