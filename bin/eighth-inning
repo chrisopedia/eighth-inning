@@ -230,7 +230,16 @@ setup_screenshots() {
 
 	# open keyboard preferences to setup shortcuts for screen shots
 	_print_progress "Opening up Keyboard preference pane to setup shortcuts"
+	
 	open "/System/Library/PreferencePanes/Keyboard.prefPane"
+	
+	_seek_confirmation "Have you changed the preferences around?"		
+	if _is_confirmed; then
+		_print_success "Screenshot preferences have been changed."
+	else
+		_print_progress "Be sure to change it when you get a chance."
+	fi
+
 }
 download_avatars() {
 	# Download avatar for immediate use
@@ -250,16 +259,6 @@ download_avatars() {
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
 
 	_notify_me "Avatars" "were" "downloaded"
-}
-remove_pdf() {
-	local pdf="$HOME/Downloads/About Downloads.lpdf"
-
-	# Remove the About Downloads pdf
-	_is_file "$pdf" \
-		&& _print_progress "Removed $pdf" \
-		&& rm -rf "$pdf" \
-		&& _print_success "Created $HOME/Code/$dir" \
-		&& _notify_me "$dir" "was" "created"
 }
 install_tools() {
 	local tools=$1
@@ -309,16 +308,17 @@ clone_bitbucket_repos() {
 	done
 }
 clone_github_repos() {
-	local input="$1"
+	local repos=$1
+	local repo
 	local type="repos"
 	local dir="$HOME/Code/$type"
 
-	_is_not_empty "${input}" && \
-		type="${input}"
+	_is_not_empty "${repos}" && \
+		type="${repos}"
 
 	for repo in $repos
 	do
-		_print_progress "Cloning all ${type}s"
+		_print_progress "Cloning all ${type}s from $repo"
 		clone-all --feed "${type}" chrisopedia "$dir" \
 			&& _print_progress "Cloned all ${type}s" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
