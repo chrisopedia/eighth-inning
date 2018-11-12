@@ -245,7 +245,7 @@ download_avatars() {
 	# Download avatar for immediate use
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 	curl -#flo "$HOME/Pictures/avatar.png" "https://chrisopedia.github.io/cdn/images/avatar/800x800.png" \
-		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User\ Pictures/Fun/" \
+		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User Pictures/Fun/" \
 		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
 
 	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/full.png"
