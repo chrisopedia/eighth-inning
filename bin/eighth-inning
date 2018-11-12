@@ -316,7 +316,7 @@ clone_github_repos() {
 		_print_progress "Cloning all repos from ${org}"
 		local dir="$HOME/Code/${org}/repos"
 		mkdir -p ${dir} \
-			&& clone-all --feed repos" ${org} "$dir" \
+			&& clone-all --feed repos ${org} "$dir" \
 			&& _print_progress "Cloned all ${type}s" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
