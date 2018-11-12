@@ -317,7 +317,7 @@ clone_github_repos() {
 		local dir="$HOME/Code/${org}/repos"
 		mkdir -p ${dir} \
 			&& clone-all --feed repos ${org} "$dir" \
-			&& _print_progress "Cloned all ${type}s" \
+			&& _print_progress "Cloned all ${org}'s repos" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
 }
@@ -331,7 +331,7 @@ clone_github_gists() {
 		local dir="$HOME/Code/${org}/gists"
 		mkdir -p ${dir} \
 			&& clone-all --feed gists ${org} "$dir" \
-			&& _print_progress "Cloned all ${type}s" \
+			&& _print_progress "Cloned all ${org}s gists" \
 			&& _notify_me "clone-all" "cloned" "all ${type}s"
 	done
 }
@@ -403,7 +403,7 @@ setup_games() {
 	do
 		game="$(basename "$game")"
 		_print_progress "Symlinking $dir/$game to /Applications/$game"
-		ln -hfs "$dir/$game" "$HOME/Applications/$game"
+		ln -hfs "$dir/$game" "/Applications/$game"
 	done
 	_print_success "All games symlinked to $dir" \
 		&& _notify_me "All games" "were" "symlinked"
@@ -528,7 +528,7 @@ main() {
 
 	# clone all github gists
 	_require_prog clone-all "clone-all is required to download gists" http://chrisopedia.github.io/clone-all \
-		&& clone_github_repos "chrisopedia"
+		&& clone_github_gists "chrisopedia"
 
 	# Install personal & developer kegs
 	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
