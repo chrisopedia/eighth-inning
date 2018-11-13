@@ -341,7 +341,7 @@ install_software() {
 
 	_require_prog brew "Homebrew is required to tap libraries" http://brew.sh \
 		&& brew cask install alfred \
-		&& open -a "$HOME/Applications/Alfred Preferences.app"
+		&& open -a "/Applications/Alfred 3.app/Contents/Preferences/Alfred Preferences.app"
 
 	for keg in $kegs
 	do
