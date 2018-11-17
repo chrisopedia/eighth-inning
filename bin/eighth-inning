@@ -452,7 +452,7 @@ setup_ssh_keys() {
 	for identity in $identities
 	do
 		_print_progress "Setting up $identity ssh key"
-		ssh-keygen -t rsa -C "chrisohpedia@gmail.com" -f "$HOME/.ssh/$identity" \
+		ssh-keygen -t rsa -C "mail@iamnewton.com" -f "$HOME/.ssh/$identity" \
 			&& eval "$(ssh-agent -s)" \
 			&& ssh-add -K "$HOME/.ssh/$identity" \
 			&& pbcopy < "$HOME/.ssh/${identity}.pub" \
