@@ -2,7 +2,7 @@
 
 REPO="eighth-inning"
 DIR="/tmp/${REPO}"
-GITHUB_USER="chrisopedia"
+GITHUB_USER="iamnewton"
 
 # Success logging
 _success() {
@@ -32,7 +32,7 @@ curl -#fLo /tmp/${REPO}.tar.gz "https://github.com/${GITHUB_USER}/${REPO}/tarbal
 
 if [[ ! -d "${DIR}" ]]; then
 	mkdir -p "${DIR}"
-	
+
 	# Extract to the ${REPO} directory
 	printf "%s┃%s Extracting files to %s...%s\n" "$(tput setaf 6)" "$(tput sgr0 ; tput setaf 7)" "${REPO}" "$(tput sgr0)"
 	tar -zxf ${DIR}.tar.gz --strip-components 1 -C "/tmp/${REPO}"
