@@ -85,7 +85,7 @@ _install_library() {
 	local package=$1
 
 	_print_progress "Installing $package"
-	bash -c "$(curl -#fL raw.github.com/chrisopedia/"$package"/go/install)" \
+	bash -c "$(curl -#fL raw.github.com/iamnewton/"$package"/go/install)" \
 		&& _notify_me "$package" "was" "installed"
 }
 _change_text() {
@@ -230,10 +230,10 @@ setup_screenshots() {
 
 	# open keyboard preferences to setup shortcuts for screen shots
 	_print_progress "Opening up Keyboard preference pane to setup shortcuts"
-	
+
 	open "/System/Library/PreferencePanes/Keyboard.prefPane"
-	
-	_seek_confirmation "Have you changed the preferences around?"		
+
+	_seek_confirmation "Have you changed the preferences around?"
 	if _is_confirmed; then
 		_print_success "Screenshot preferences have been changed."
 	else
@@ -243,20 +243,20 @@ setup_screenshots() {
 }
 download_avatars() {
 	# Download avatar for immediate use
-	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
-	curl -#flo "$HOME/Pictures/avatar.png" "https://chrisopedia.github.io/cdn/images/avatar/800x800.png" \
+	_print_progress "Downloading https://iamnewton.github.io/cdn/images/avatar/800x800.png"
+	curl -#flo "$HOME/Pictures/avatar.png" "https://iamnewton.github.io/cdn/images/avatar/800x800.png" \
 		&& sudo cp "$HOME/Pictures/avatar.png" "/Library/User Pictures/Fun/" \
-		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/avatar/800x800.png"
+		&& _print_success "Downloaded https://iamnewton.github.io/cdn/images/avatar/800x800.png"
 
-	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/avatar/full.png"
-	curl -#flo "$HOME/Pictures/ralph-and-i.png" "https://chrisopedia.github.io/cdn/images/avatar/full.png" \
-		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/avatar/full.png"
+	_print_progress "Downloading https://iamnewton.github.io/cdn/images/avatar/full.png"
+	curl -#flo "$HOME/Pictures/ralph-and-i.png" "https://iamnewton.github.io/cdn/images/avatar/full.png" \
+		&& _print_success "Downloaded https://iamnewton.github.io/cdn/images/avatar/full.png"
 
 	# http://www.tekrevue.com/tip/custom-login-screen-wallpaper-os-x-yosemite/
-	_print_progress "Downloading https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
-	curl -#flo "$HOME/Pictures/com.apple.desktop.admin.png" "https://chrisopedia.github.io/cdn/images/wallpapers/com.apple.desktop.admin.png" \
+	_print_progress "Downloading https://iamnewton.github.io/cdn/images/com.apple.desktop.admin.png"
+	curl -#flo "$HOME/Pictures/com.apple.desktop.admin.png" "https://iamnewton.github.io/cdn/images/wallpapers/com.apple.desktop.admin.png" \
 		&& sudo cp "$HOME/Pictures/com.apple.desktop.admin.png" "Library/Caches/com.apple.desktop.admin.png" \
-		&& _print_success "Downloaded https://chrisopedia.github.io/cdn/images/com.apple.desktop.admin.png"
+		&& _print_success "Downloaded https://iamnewton.github.io/cdn/images/com.apple.desktop.admin.png"
 
 	_notify_me "Avatars" "were" "downloaded"
 }
@@ -296,7 +296,7 @@ tap_libraries() {
 clone_bitbucket_repos() {
 	local repos=$1
 	local repo
-	local url="https://chrisopedia@bitbucket.org/chrisopedia"
+	local url="https://iamnewton@bitbucket.org/iamnewton"
 	local dir="$HOME/Code/private"
 
 	for repo in $repos
@@ -523,15 +523,15 @@ main() {
 		&& clone_bitbucket_repos "app-licenses games fonts httpd"
 
 	# clone all github repositories
-	_require_prog clone-all "clone-all is required to download repos" http://chrisopedia.github.io/clone-all \
-		&& clone_github_repos "chrisopedia lagrco assemblerui"
+	_require_prog clone-all "clone-all is required to download repos" http://iamnewton.github.io/clone-all \
+		&& clone_github_repos "iamnewton"
 
 	# clone all github gists
-	_require_prog clone-all "clone-all is required to download gists" http://chrisopedia.github.io/clone-all \
-		&& clone_github_gists "chrisopedia"
+	_require_prog clone-all "clone-all is required to download gists" http://iamnewton.github.io/clone-all \
+		&& clone_github_gists "iamnewton"
 
 	# Install personal & developer kegs
-	_require_prog kegger "kegger is required to download & install apps" http://chrisopedia.github.io/kegger \
+	_require_prog kegger "kegger is required to download & install apps" http://iamnewton.github.io/kegger \
 		&& install_software "0b61a78ed66fd94d8277 5ec0bc278d368187cdff 437cc62c5c39bdd2cc67 825c86d6cf41a488d992 63e5cc70f0ad92615242" \
 		&& ask_to_install_more_software
 
@@ -552,11 +552,11 @@ main() {
 	setup_bash_profile
 
 	# setup the osx theme
-	_require_prog osx-theme "osx-theme is required to setup OS X" http://chrisopedia.github.io/osx-theme \
+	_require_prog osx-theme "osx-theme is required to setup OS X" http://iamnewton.github.io/osx-theme \
 		&& setup_osx_theme
 
 	# run the osx setup
-	_require_prog osx "osx is required to setup OS X" http://chrisopedia.github.io/osx \
+	_require_prog osx "osx is required to setup OS X" http://iamnewton.github.io/osx \
 		&& setup_osx
 }
 
