@@ -16,7 +16,7 @@ _process() {
 
 # Check for Homebrew; install brew
 if ! type -P 'brew' &> /dev/null; then
-	ruby -e "$(curl -#fkL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
 	_process "Running brew doctor"
 	brew doctor
