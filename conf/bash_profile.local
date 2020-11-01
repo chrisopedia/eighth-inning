@@ -95,3 +95,6 @@ alias leanin="sudo apachectl stop && docker run -d -p 80:80 -v /var/run/docker.s
 
 # reinstall deps
 alias npmplease="rm -rf node_modules/ && rm -f package-lock.json && npm install"
+
+# iTerm shell integration
+test -e "${HOME}/.iterm2_shell_integration.bash" && source "${HOME}/.iterm2_shell_integration.bash"
